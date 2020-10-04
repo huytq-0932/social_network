@@ -1,0 +1,122 @@
+{
+    "frontend": {
+        "admin": {
+            "productsIndex": "Quản lý dịch vụ",
+            "facebookIndex": "Dịch vụ facebook",
+            "usersIndex": "Quản lý nhân viên",
+            "customersIndex": "Quản lý khách hàng",
+            "ordersIndex": "Quản lý hóa đơn",
+            "revenueIndex": "Quản lý doanh thu",
+            "scheduleIndex": "Quản lý thông báo",
+            "reportIndex": "Chốt sổ",
+            "salariesIndex": "Quản lý Lương",
+            "settingIndex": "Cài đặt hệ thống",
+            "home": "Trang chủ",
+            "dashboard": {
+                "index": "Bảng trung tâm"
+            },
+            "watermark": {
+                "index": "Đóng Logo"
+            },
+            "fbUsers": {
+                "index":"Danh sách bots"
+            },
+            "facebook": {
+                "like": "Tăng like",
+                "comment": "Tăng comment",
+                "share": "tăng share"
+            },
+            "products": {
+                "index": "Dịch vụ - sản phẩm",
+                "create": "Thêm dịch vụ - sản phẩm",
+                "edit": "Sửa dịch vụ - sản phẩm",
+                "updateQuantity": "Cập nhật tồn kho",
+                "schedule": "Nội dung nhắc",
+                "schedules": "Lịch nhắc khách",
+                "process": "Liệu trình"
+            },
+            "import": {
+                "index":"Quản lý nhập kho",
+                "create": "Thêm đơn nhập kho",
+                "edit": "Chi tiết đơn nhập kho"
+            },
+            "export": {
+                "index":"Quản lý xuất kho",
+                "create": "Thêm đơn xuất kho",
+                "edit": "Chi tiết đơn xuất kho"
+            },
+            "productCategories": {
+                "index": "Nhóm dịch vụ - sản phẩm",
+                "create": "Thêm nhóm dịch vụ - sản phẩm",
+                "edit": "Sửa nhóm dịch vụ - sản phẩm"
+            },
+            "users": {
+                "index": "Tài khoản nhân viên",
+                "edit": "Sửa tài khoản nhân viên",
+                "create": "Thêm tài khoản mới"
+            },
+            "userGroups": {
+                "index": "Nhóm nhân viên",
+                "create": "Thêm nhóm nhân viên",
+                "edit": "Sửa nhóm nhân viên",
+                "role": "Phân quyền nhóm nhân viên"
+            },
+            "customers": {
+                "index": "Khách hàng",
+                "create": "Thêm khách hàng",
+                "edit": "Sửa khách hàng",
+                "search": "Tìm kiếm khách hàng",
+                "booking": "Khách đặt chỗ",
+                "history": "Lịch sử khách hàng"
+            },
+            "bookings": {
+                "index": "Khách đặt trước",
+                "create": "Đặt lịch cho khách",
+                "edit": "Sửa lịch đặt trước",
+                "search": "Tìm kiếm khách hàng",
+                "booking": "Khách hẹn trước"
+            },
+            "serviceSchedules": {
+                "index": "Quản lý nhắc đặt dịch vụ"
+            },
+            "orders": {
+                "index": "Hóa đơn đã hoàn thành",
+                "create": "Thêm hóa đơn",
+                "edit": "Sửa hóa đơn"
+            },
+            "tempOrders": {
+                "index": "Hóa đơn chưa hoàn thành",
+                "create": "Thêm hóa đơn tạm",
+                "edit": "Sửa hóa đơn tạm"
+            },
+            "revenue": {
+                "index": "Quản lý doanh thu"
+            },
+            "schedules": {
+                "index": "Khách cần nhắc",
+                "create": "Tạo lịch nhắc"
+            },
+            "reports": {
+                "index": "Chốt doanh thu tháng"
+            },
+            "salaries": {
+                "index": "Quản lý lương",
+                "detail": "Chi tiết lương theo doanh thu"
+            },
+            "zalo": {
+                "index": "Quản lý tin nhắn Zalo",
+                "login": "Đăng nhập Zalo"
+            },
+            "settings": {
+                "index": "Cài đặt chung",
+                "messages": "Cài đặt tin nhắn",
+                "printer": "Cài đặt máy in",
+                "camera": "Cài đặt máy quay",
+                "zaloHistory": "Lịch sử tin nhắn"
+            },
+            "helps": {
+                "index": "Hướng dẫn chung"
+            }
+        }
+    }
+}

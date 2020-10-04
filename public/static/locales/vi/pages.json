@@ -1,0 +1,37 @@
+{
+    "errors": {
+      "403": {
+        "title": "Không có quyền truy cập",
+        "description": "Xin lỗi, bạn không có quyền truy cập vào trang này.",
+        "permissionDetail": "Trang này yêu cầu quyền: \"{{permission}}\" với giá trị: \"{{requirePermission}}\". Nhưng bạn có: \"{{userPermission}}\"."
+      }
+    },
+    "users": {
+      "index": {
+        "title": "Danh sách nhân viên",
+        "description": "Theo dõi toàn bộ tài khoản nhân viên, có thể tạo mới và chỉnh sửa các thông tin"
+      },
+      "create": {
+        "title": "Tạo tài khoản nhân viên mới",
+        "description": "Điền đầy đủ thông tin để tạo tài khoản mới cho nhân viên"
+      },
+      "edit":{
+        "title": "Sửa tài khoản nhân viên",
+        "description":"Có thể chỉnh sửa toàn bộ thông tin tài khoản, lập lại mật khẩu,..."
+      }
+    },
+    "watermark": {
+        "index": {
+          "title": "Đóng logo",
+          "description": "Tiện ích đóng logo nhanh chóng"
+        },
+        "create": {
+          "title": "Tạo tài khoản nhân viên mới",
+          "description": "Điền đầy đủ thông tin để tạo tài khoản mới cho nhân viên"
+        },
+        "edit":{
+          "title": "Sửa tài khoản nhân viên",
+          "description":"Có thể chỉnh sửa toàn bộ thông tin tài khoản, lập lại mật khẩu,..."
+        }
+      }
+  }
