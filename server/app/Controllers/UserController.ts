@@ -22,21 +22,10 @@ export default class Controller extends BaseController {
         if (!user) {
             throw new ApiException(7000, "Can not login")
         }
-        let type = "admin";
-        let permissions = {};
-        if (user.isRoot) {
-            type = "root";
-            permissions = { 'root': 15 };
-        }
-        else {
-            //permissions = await this.UserGroupRepository.setCompanyId(user.companyId).getPermissions(user.groupId);
-        }
         let token = Auth.generateJWT({
             id: user.id,
             username: user.username,
-            roles: user.role,
-            permissions: permissions,
-            type: type
+            roles: user.role
         }, {
             key: authConfig['SECRET_KEY_ADMIN'],
             expiresIn: authConfig['JWT_EXPIRE_ADMIN']
@@ -45,8 +34,7 @@ export default class Controller extends BaseController {
         this.response.success({
             token,
             user: {
-                ...user,
-                permissions
+                ...user
             }
         })
     }
