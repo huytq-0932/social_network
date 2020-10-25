@@ -1,5 +1,5 @@
 import BaseController from './BaseController'
-import Model from '@app/Models/AdminModel'
+import Model from '@root/server/app/Models/UserModel'
 import ApiException from '@app/Exceptions/ApiException'
 import Auth from '@libs/Auth'
 import authConfig from '@config/auth'
@@ -34,7 +34,7 @@ export default class Controller extends BaseController {
         this.response.success({
             token,
             user: {
-                ...user
+                ...user 
             }
         })
     }

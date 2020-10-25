@@ -1,5 +1,5 @@
 import BaseController from './BaseController'
-import Model from '@app/Models/AdminGroupModel'
+import Model from '@root/server/app/Models/UserGroupModel'
 import ApiException from '@app/Exceptions/ApiException'
 import Auth from '@libs/Auth'
 import authConfig from '@config/auth'
