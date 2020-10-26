@@ -9,7 +9,7 @@ function IndexPage() {
     - Chạy backend thì gõ lệnh yarn run dev-server <br/>
     B3: Nếu chưa có db thì tạo theo knex (chưa hiểu knex nhắn qua face t cho dễ) <br/>
     B4: dev :)))
-     </div>;
+     </div>
 }
 
 export default IndexPage;
