@@ -1,12 +1,12 @@
 import Route from '@core/Routes'
 //const AuthAdminMiddleware = require('@app/Middlewares/AuthAdminMiddleware')
 
-Route.get("/", "pages/index").name("dashboard.index").sidebar(`dashboard`)
+Route.get("/", "pages/index").name("dashboard.index")
 
 Route.group(() => {
-  Route.get("/", "pages/index").name("dashboard.index").sidebar(`dashboard`)
 
 }).name("frontend.admin")
+    //.middleware([AuthAdminMiddleware])
 
 /*
 Route.group(() => {
