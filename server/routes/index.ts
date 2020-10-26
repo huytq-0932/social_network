@@ -5,7 +5,7 @@ const AuthApiMiddleware = require('@app/Middlewares/AuthApiMiddleware')
 const { permission, permissionResource, permissionMethod } = require('@app/Middlewares/PermissionMiddleware')
   
 Route.group(() => {
-  Route.post("/login", "AdminController.login").name('login')
+  Route.post("/login", "UserController.login").name('login')
   
   Route.group(() => {
     Route.resource("/users", "UserController").name('users')

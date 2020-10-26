@@ -24,8 +24,7 @@ export default class Controller extends BaseController {
         }
         let token = Auth.generateJWT({
             id: user.id,
-            username: user.username,
-            roles: user.role
+            username: user.username
         }, {
             key: authConfig['SECRET_KEY_ADMIN'],
             expiresIn: authConfig['JWT_EXPIRE_ADMIN']

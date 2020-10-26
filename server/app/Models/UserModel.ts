@@ -3,15 +3,15 @@ const bcrypt = require("bcrypt")
 const authConfig = require("@config/auth")
 
 class UserModel extends BaseModel {
-    static tableName = "admins"
+    static tableName = "users"
 
     //fields
     id: number;
     username: string;
-    role: any;
     password: string;
-    isRoot?: number;
-    
+    phone: string;
+    avatar: string;
+
     static async checkLogin({ username, password }) {
         const user = await this.query().findOne({ username: username });
         if (!user) return false;
