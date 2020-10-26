@@ -1,4 +1,5 @@
 import BaseModel from './BaseModel'
+
 const bcrypt = require("bcrypt")
 const authConfig = require("@config/auth")
 
@@ -7,12 +8,13 @@ class UserModel extends BaseModel {
 
     //fields
     id: number;
+    name: string;
     password: string;
-    phone: string;
     avatar: string;
+    phone: string;
 
-    static async checkLogin({ phonenumber, password }) {
-        const user = await this.query().findOne({ phone: phonenumber });
+    static async checkLogin({phonenumber, password}) {
+        const user = await this.query().findOne({phone: phonenumber});
         if (!user) return false;
 
         //await this.changePassword(user.id, "123456@")
@@ -29,11 +31,19 @@ class UserModel extends BaseModel {
     static async compare(plainPassword, encryptedPassword) {
         return await bcrypt.compare(plainPassword + authConfig.SECRET_KEY, encryptedPassword)
     }
+
     async changePassword(newPassword) {
         newPassword = await UserModel.hash(newPassword)
-        return await this.$query().patchAndFetchById(this.id, {
+        return this.$query().patchAndFetchById(this.id, {
             password: newPassword
-        })
+        });
+    }
+
+    static async getInfo(id) {
+        const user = await this.query().findOne({id: id});
+        if (!user) return false;
+        delete user.password
+        return user
     }
 }
 

@@ -9,5 +9,6 @@ Route.group(() => {
   
   Route.group(() => {
     Route.resource("/users", "UserController").name('users')
+    Route.resource("/get_user_info", "UserController.getInfo").name('getInfo')
   }).middleware([AuthApiMiddleware])
 }).middleware([ExtendMiddleware]).name('api')

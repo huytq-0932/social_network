@@ -31,33 +31,56 @@ export default class Controller extends BaseController {
         });
 
         this.response.success({
+            id: user.id,
+            username: user.name,
             token,
-            user: {
-                ...user 
-            }
+            avatar: user.avatar,
+            active: (!user.avatar && !user.name) ? -1 : 1
         })
     }
 
     async updateMyPassword() {
         let inputs = this.request.all()
-    
+
         const allowFields = {
-          password: "string!"
+            password: "string!"
         }
         let data = this.validate(inputs, allowFields, {
-          removeNotAllow: true
+            removeNotAllow: true
         });
         const auth = this.request.auth || {};
         const id = auth.id;
         let user = await this.Model.query().findById(id);
-    
+
         if (!user) {
-          throw new ApiException(7002, "Tài khoản không tồn tại!")
+            throw new ApiException(9995, "User is not validated")
         }
-        
-        
+
         let result = await user.changePassword(data['password'])
         delete result['password']
         return result
-      }
+    }
+
+    async getInfo() {
+        const inputs = this.request.all();
+        const allowFields = {
+            token: "string!",
+            user_id: "string"
+        }
+        const data = this.validate(inputs, allowFields);
+        try {
+            const decodedToken = await Auth.decodeJWT(data.token, {
+                key: authConfig['SECRET_KEY_ADMIN'],
+                expiresIn: authConfig['JWT_EXPIRE_ADMIN']
+            })
+            const id = !data.user_id ? decodedToken.id : data.user_id
+            const user = await this.Model.getInfo(id)
+            if (!user) {
+                throw new ApiException(9995, "User is not validated")
+            }
+            this.response.success(user)
+        } catch (e) {
+            throw new ApiException(9998, "Token is invalid")
+        }
+    }
 }
