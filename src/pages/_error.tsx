@@ -1,0 +1,21 @@
+import { NextPageContext } from "next";
+
+const Error = ({ statusCode } = {statusCode: null}) => {
+  return (
+    <p>
+      {statusCode
+        ? `An error ${statusCode} occurred on server`
+        : "An error occurred on client"}
+    </p>
+  );
+};
+
+Error.getInitialProps = ({ res, err }: NextPageContext) => {
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404;
+  return {
+    statusCode,
+    namespacesRequired: ['common', 'error']
+  };
+};
+
+export default Error;
