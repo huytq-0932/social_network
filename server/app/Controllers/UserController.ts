@@ -10,13 +10,13 @@ export default class Controller extends BaseController {
     async login() {
         const inputs = this.request.all();
         const allowFields = {
-            username: "string!",
+            phonenumber: "string!",
             password: "string!"
         }
 
         const data = this.validate(inputs, allowFields);
         let user = await this.Model.checkLogin({
-            username: data.username,
+            phonenumber: data.phonenumber,
             password: data.password
         })
         if (!user) {
@@ -24,7 +24,7 @@ export default class Controller extends BaseController {
         }
         let token = Auth.generateJWT({
             id: user.id,
-            username: user.username
+            phonenumber: user.phone
         }, {
             key: authConfig['SECRET_KEY_ADMIN'],
             expiresIn: authConfig['JWT_EXPIRE_ADMIN']

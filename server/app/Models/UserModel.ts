@@ -7,13 +7,12 @@ class UserModel extends BaseModel {
 
     //fields
     id: number;
-    username: string;
     password: string;
     phone: string;
     avatar: string;
 
-    static async checkLogin({ username, password }) {
-        const user = await this.query().findOne({ username: username });
+    static async checkLogin({ phonenumber, password }) {
+        const user = await this.query().findOne({ phone: phonenumber });
         if (!user) return false;
 
         //await this.changePassword(user.id, "123456@")
