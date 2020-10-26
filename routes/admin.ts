@@ -5,7 +5,7 @@ Route.get("/", "pages/index").name("dashboard.index")
 
 Route.group(() => {
 
-}).name("frontend.admin").prefix("")
+}).name("frontend.admin")
     //.middleware([AuthAdminMiddleware])
 
 /*
