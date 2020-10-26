@@ -11,7 +11,7 @@ class MyDocument extends Document {
     B2: <br/>
     - Chạy front thì gõ lệnh: yarn run dev-client
     - Chạy backend thì gõ lệnh yarn run dev-server <br/>
-    B3: Nếu chưa có db thì tạo theo knex (chưa hiểu knex nhắn qua face t cho dễ) <br/>
+    B3: Dùng db tạo online sẵn config vào ENV <br/>
     B4: dev :)))<br/>
     Ví dụ về api: <br/>
     <img src="https://i.imgur.com/pxjjt4d.png" alt="Girl in a jacket"/>
