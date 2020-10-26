@@ -6,3 +6,5 @@ node_modules
 logs
 package-lock.json
 yarn.lock
+.DS_Store
+.idea/
