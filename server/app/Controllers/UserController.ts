@@ -71,10 +71,7 @@ export default class Controller extends BaseController {
         let data = this.validate(inputs, allowFields, {
             removeNotAllow: true
         });
-        let auth = await Auth.verify(data.token);
-        if(!auth){
-            throw new ApiException(9998, "Token invalid")
-        }
+        let auth = this.request.auth;
         let user = await this.Model.query().findById(auth.id);
 
         if (!user) {

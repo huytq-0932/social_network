@@ -38,29 +38,30 @@ class AuthApiMiddleware extends BaseMiddleware {
     }
 
     async checkToken() {
-        let token = this.cookies.get('token')
-        let [error, result]: [any, any] = await to(Auth.verify(token, {
+        let inputs = this.request.all() || {};
+        let token = inputs.token;
+        let auth = await Auth.verify(token, {
             key: authConfig['SECRET_KEY']
-        }));
-        if (error) return { error: error.message };
-        /* if(result.type !== "admin"){
-          return this.response.error(403, "not access")
-        } */
-        if (result.exp - Date.now() / 1000 < authConfig['JWT_REFRESH_TIME']) {
-            let newToken = Auth.generateJWT({
-                _id: result.id,
-                username: result.username,
-                roles: result.roles,
-                permissions: result.permissions,
-                type: result.type
-            }, {
-                key: authConfig['SECRET_KEY'],
-                expiresIn: authConfig['JWT_EXPIRE']
-            });
-            this.response.set('Access-Control-Expose-Headers', 'access-token')
-            this.response.set('access-token', newToken);
-        }
-        this.request.auth = this.makeAuthObject(result);
+        });
+        if (!auth) return { error: "token is invalid", code: 9998 };
+        // /* if(result.type !== "admin"){
+        //   return this.response.error(403, "not access")
+        // } */
+        // if (result.exp - Date.now() / 1000 < authConfig['JWT_REFRESH_TIME']) {
+        //     let newToken = Auth.generateJWT({
+        //         _id: result.id,
+        //         username: result.username,
+        //         roles: result.roles,
+        //         permissions: result.permissions,
+        //         type: result.type
+        //     }, {
+        //         key: authConfig['SECRET_KEY'],
+        //         expiresIn: authConfig['JWT_EXPIRE']
+        //     });
+        //     this.response.set('Access-Control-Expose-Headers', 'access-token')
+        //     this.response.set('access-token', newToken);
+        // }
+        this.request.auth = auth;
         return { token };
     }
 
