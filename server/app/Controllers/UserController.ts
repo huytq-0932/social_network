@@ -73,7 +73,7 @@ export default class Controller extends BaseController {
         });
         let auth = await Auth.verify(data.token);
         if(!auth){
-            throw new ApiException(401, "Token invalid")
+            throw new ApiException(9998, "Token invalid")
         }
         let user = await this.Model.query().findById(auth.id);
 
