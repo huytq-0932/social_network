@@ -9,6 +9,7 @@ export default class Controller extends BaseController {
     async signup(){
         const inputs = this.request.all();
         const allowFields = {
+            name: "string",
             phonenumber: "string!",
             password: "string!",
             uuid: "string!",
@@ -18,8 +19,13 @@ export default class Controller extends BaseController {
         if(exist){
             throw new ApiException(9996, "User Exist");
         }
-        data.password = this.Model.hash(data.password)
-        let result = await this.Model.query().insert(data);
+        data.password = this.Model.hash(data.password);
+        
+        let result = await this.Model.query().insert({
+            phone: data.phone,
+            password: data.password,
+            name: data.name || "new member"
+        });
         delete result.password;
         return result;
     }
