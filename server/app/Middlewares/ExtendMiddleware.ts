@@ -68,12 +68,12 @@ class ExtendMiddleware extends BaseMiddleware {
     })}`)
     this.response.sent = 1;
     this.response.json({
-      code: 200,
+      code: 1000,
       data: data
     });
   }
 
-  handleError(errorCode, err, info, httpCode = 200) {
+  handleError(errorCode, err, info, httpCode = 1000) {
     let data: any = {
       code: errorCode,
       info: info
