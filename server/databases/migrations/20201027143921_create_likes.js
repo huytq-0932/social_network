@@ -1,8 +1,8 @@
 exports.up = function (knex) {
-  return knex.schema.createTable("chats", function (table) {
+  return knex.schema.createTable("likes", function (table) {
     table.increments();
     table
-      .integer("send_id")
+      .integer("user_id")
       .notNullable()
       .index()
       .references("id")
@@ -10,18 +10,16 @@ exports.up = function (knex) {
       .onUpdate("CASCADE")
       .onDelete("SET NULL");
     table
-      .integer("receive_id")
+      .integer("post_id")
       .notNullable()
       .index()
       .references("id")
-      .inTable("users")
+      .inTable("posts")
       .onUpdate("CASCADE")
       .onDelete("SET NULL");
-    table.text("content").notNullable();
-    table.timestamp("createdAt").defaultTo(knex.fn.now());
   });
 };
 
 exports.down = function (knex) {
-  return knex.schema.dropTable("chats");
+  return knex.schema.dropTable("likes");
 };

@@ -1,8 +1,8 @@
-import Base from '@core/Databases/BaseModel';
-import ExtendQueryBuilder from './QueryBuilder';
+import Base from "@core/Databases/BaseModel";
+import ExtendQueryBuilder from "./QueryBuilder";
 
 class BaseModel extends Base {
-    static QueryBuilder = ExtendQueryBuilder
+  static QueryBuilder = ExtendQueryBuilder;
 }
 
-export default BaseModel
+export default BaseModel;
