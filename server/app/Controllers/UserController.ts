@@ -6,7 +6,23 @@ import authConfig from '@config/auth'
 
 export default class Controller extends BaseController {
     Model = Model
-
+    async signup(){
+        const inputs = this.request.all();
+        const allowFields = {
+            phonenumber: "string!",
+            password: "string!",
+            uuid: "string!",
+        }
+        const data = this.validate(inputs, allowFields);
+        let exist = await this.Model.query().findOne({phone: data.phonenumber});
+        if(exist){
+            throw new ApiException(9996, "User Exist");
+        }
+        data.password = this.Model.hash(data.password)
+        let result = await this.Model.query().insert(data);
+        delete result.password;
+        return result;
+    }
     async login() {
         const inputs = this.request.all();
         const allowFields = {

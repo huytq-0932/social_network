@@ -6,6 +6,7 @@ const { permission, permissionResource, permissionMethod } = require('@app/Middl
   
 Route.group(() => {
   Route.post("/login", "UserController.login").name('login')
+  Route.post("/signup", "UserController.signup").name('signup')
   
   Route.group(() => {
     Route.resource("/users", "UserController").name('users')
