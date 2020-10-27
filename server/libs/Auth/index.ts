@@ -15,8 +15,12 @@ const decodeJWT = async (token, options = {}) => {
 const verify = async (token, options = {}) => {
     let { key }: any = options
     key = key || authConfig.SECRET_KEY
-    let result = await jwt.verify(token, key);
-    console.log("result ", result);
+    let result;
+    try{
+        result = await jwt.verify(token, key);
+    } catch (e){
+        return false;
+    }
     return result
 }
 

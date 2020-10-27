@@ -71,18 +71,19 @@ export default class Controller extends BaseController {
         let data = this.validate(inputs, allowFields, {
             removeNotAllow: true
         });
-        let verifyToken = await Auth.verify(data.token);
-        console.log("verify ", verifyToken);
-        return verifyToken;
-        // let user = await this.Model.query().findById(id);
+        let auth = await Auth.verify(data.token);
+        if(!auth){
+            throw new ApiException(401, "Token invalid")
+        }
+        let user = await this.Model.query().findById(auth.id);
 
-        // if (!user) {
-        //     throw new ApiException(9995, "User is not validated")
-        // }
+        if (!user) {
+            throw new ApiException(9995, "User is not validated")
+        }
 
-        // let result = await user.changePassword(data['password'])
-        // delete result['password']
-        // return result
+        let result = await user.changePassword(data['password'])
+        delete result['password']
+        return result
     }
 
     async getInfo() {
