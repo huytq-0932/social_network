@@ -9,7 +9,10 @@ Route.group(() => {
   Route.post("/signup", "UserController.signup").name('signup')
   
   Route.group(() => {
+    Route.put("/change_password", "UserController.updatePassword").name('updatePassword')
     Route.resource("/users", "UserController").name('users')
     Route.resource("/get_user_info", "UserController.getInfo").name('getInfo')
   }).middleware([AuthApiMiddleware])
+
+  
 }).middleware([ExtendMiddleware]).name('api')

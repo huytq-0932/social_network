@@ -48,8 +48,8 @@ export default class Controller extends BaseController {
             id: user.id,
             phonenumber: user.phone
         }, {
-            key: authConfig['SECRET_KEY_ADMIN'],
-            expiresIn: authConfig['JWT_EXPIRE_ADMIN']
+            key: authConfig['SECRET_KEY'],
+            expiresIn: authConfig['JWT_EXPIRE']
         });
 
         this.response.success({
@@ -61,26 +61,28 @@ export default class Controller extends BaseController {
         })
     }
 
-    async updateMyPassword() {
+    async updatePassword() {
         let inputs = this.request.all()
 
         const allowFields = {
-            password: "string!"
+            password: "string!",
+            token: "string!"
         }
         let data = this.validate(inputs, allowFields, {
             removeNotAllow: true
         });
-        const auth = this.request.auth || {};
-        const id = auth.id;
-        let user = await this.Model.query().findById(id);
+        let verifyToken = await Auth.verify(data.token);
+        console.log("verify ", verifyToken);
+        return verifyToken;
+        // let user = await this.Model.query().findById(id);
 
-        if (!user) {
-            throw new ApiException(9995, "User is not validated")
-        }
+        // if (!user) {
+        //     throw new ApiException(9995, "User is not validated")
+        // }
 
-        let result = await user.changePassword(data['password'])
-        delete result['password']
-        return result
+        // let result = await user.changePassword(data['password'])
+        // delete result['password']
+        // return result
     }
 
     async getInfo() {
@@ -92,8 +94,8 @@ export default class Controller extends BaseController {
         const data = this.validate(inputs, allowFields);
         try {
             const decodedToken = await Auth.decodeJWT(data.token, {
-                key: authConfig['SECRET_KEY_ADMIN'],
-                expiresIn: authConfig['JWT_EXPIRE_ADMIN']
+                key: authConfig['SECRET_KEY'],
+                expiresIn: authConfig['JWT_EXPIRE']
             })
             const id = !data.user_id ? decodedToken.id : data.user_id
             const user = await this.Model.getInfo(id)

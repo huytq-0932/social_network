@@ -40,7 +40,7 @@ class AuthApiMiddleware extends BaseMiddleware {
     async checkToken() {
         let token = this.cookies.get('token')
         let [error, result]: [any, any] = await to(Auth.verify(token, {
-            key: authConfig['SECRET_KEY_ADMIN']
+            key: authConfig['SECRET_KEY']
         }));
         if (error) return { error: error.message };
         /* if(result.type !== "admin"){
@@ -54,8 +54,8 @@ class AuthApiMiddleware extends BaseMiddleware {
                 permissions: result.permissions,
                 type: result.type
             }, {
-                key: authConfig['SECRET_KEY_ADMIN'],
-                expiresIn: authConfig['JWT_EXPIRE_ADMIN']
+                key: authConfig['SECRET_KEY'],
+                expiresIn: authConfig['JWT_EXPIRE']
             });
             this.response.set('Access-Control-Expose-Headers', 'access-token')
             this.response.set('access-token', newToken);
