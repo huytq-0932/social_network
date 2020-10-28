@@ -5,7 +5,7 @@ const AuthApiMiddleware = require("@app/Middlewares/AuthApiMiddleware");
 const {
   permission,
   permissionResource,
-  permissionMethod,
+  permissionMethod
 } = require("@app/Middlewares/PermissionMiddleware");
 
 Route.group(() => {
@@ -21,6 +21,7 @@ Route.group(() => {
   }).middleware([AuthApiMiddleware]);
 
   // Post
+  Route.post("/add_post", "PostController.createPost").name("createPost");
   Route.get("/get_post", "PostController.getPostById").name("getPostById");
 })
   .middleware([ExtendMiddleware])

@@ -7,7 +7,6 @@ import PostImages from "@root/server/app/Models/PostImages";
 import PostVideos from "@root/server/app/Models/PostVideos";
 import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
-import authConfig from "@config/auth";
 
 export default class PostController extends BaseController {
   UserModel = UserModel;
@@ -18,14 +17,8 @@ export default class PostController extends BaseController {
   PostVideos = PostVideos;
 
   async createPost() {
-    let inputs = this.request.all();
-    const allowFields = {
-      id: "number!",
-      token: "string!"
-    };
-    let req = this.validate(inputs, allowFields, {
-      removeNotAllow: true
-    });
+    console.log(this.request.files);
+    return "Luandeptrai";
   }
 
   async getPostById() {
