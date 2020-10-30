@@ -59,7 +59,6 @@ class Server {
     this.express.use(nextI18NextMiddleware(nextI18next));
     this.express.use(
       fileUpload({
-        useTempFiles: true,
         tempFileDir: "/tmp/"
       })
     );

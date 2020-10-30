@@ -23,6 +23,10 @@ Route.group(() => {
   // Post
   Route.post("/add_post", "PostController.createPost").name("createPost");
   Route.get("/get_post", "PostController.getPostById").name("getPostById");
+  Route.delete("/delete_post", "PostController.deletePostById").name(
+    "deletePostById"
+  );
+  Route.put("/edit_post", "PostController.editPost").name("editPost");
 })
   .middleware([ExtendMiddleware])
   .name("api");

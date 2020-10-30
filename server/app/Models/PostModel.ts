@@ -8,6 +8,7 @@ class PostModel extends BaseModel {
   user_id: number;
   described: string;
   banned: string;
+  state: number;
   can_comment: boolean;
 }
 
