@@ -18,15 +18,15 @@ Route.group(() => {
       "updatePassword"
     );
     Route.resource("/get_user_info", "UserController.getInfo").name("getInfo");
-  }).middleware([AuthApiMiddleware]);
 
-  // Post
-  Route.post("/add_post", "PostController.createPost").name("createPost");
-  Route.get("/get_post", "PostController.getPostById").name("getPostById");
-  Route.delete("/delete_post", "PostController.deletePostById").name(
-    "deletePostById"
-  );
-  Route.put("/edit_post", "PostController.editPost").name("editPost");
+    // Post
+    Route.get("/get_post", "PostController.getPostById").name("getPostById");
+    Route.post("/add_post", "PostController.createPost").name("createPost");
+    Route.delete("/delete_post", "PostController.deletePostById").name(
+      "deletePostById"
+    );
+    Route.put("/edit_post", "PostController.editPost").name("editPost");
+  }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
   .name("api");

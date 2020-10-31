@@ -34,10 +34,7 @@ export default class PostController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let auth = await Auth.verify(data.token);
-    if (!auth) {
-      throw new ApiException(9998, "Token is invalid");
-    }
+    let auth = this.request.auth;
     let user = await this.UserModel.query().findById(auth.id);
     if (!user) {
       throw new ApiException(9995, "User is not validated");
@@ -83,10 +80,7 @@ export default class PostController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let auth = await Auth.verify(data.token);
-    if (!auth) {
-      throw new ApiException(9998, "Token is invalid");
-    }
+    let auth = this.request.auth;
 
     let user = await this.UserModel.query().findById(auth.id);
 
@@ -112,10 +106,7 @@ export default class PostController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: false
     });
-    let auth = await Auth.verify(data.token);
-    if (!auth) {
-      throw new ApiException(9998, "Token is invalid");
-    }
+    let auth = this.request.auth;
     let user = await this.UserModel.query().findById(auth.id);
     if (!user) {
       throw new ApiException(9995, "User is not validated");
@@ -206,10 +197,7 @@ export default class PostController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let auth = await Auth.verify(data.token);
-    if (!auth) {
-      throw new ApiException(9998, "Token is invalid");
-    }
+    let auth = this.request.auth;
 
     let user = await this.UserModel.query().findById(auth.id);
 
