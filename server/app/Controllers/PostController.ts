@@ -7,7 +7,6 @@ import PostBlockedUsers from "@root/server/app/Models/PostBlockedUsers";
 import PostImages from "@root/server/app/Models/PostImages";
 import PostVideos from "@root/server/app/Models/PostVideos";
 import ApiException from "@app/Exceptions/ApiException";
-import Auth from "@libs/Auth";
 import fs from "fs";
 import path from "path";
 
@@ -39,7 +38,7 @@ export default class PostController extends BaseController {
     if (!user) {
       throw new ApiException(9995, "User is not validated");
     }
-    let postInfo = await this.PostModel.query().findById(data.id);
+    let postInfo: PostModel = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
     if (postInfo.user_id !== user.id)
       throw new ApiException(1009, "Not access");
@@ -211,15 +210,15 @@ export default class PostController extends BaseController {
     const [
       postAuthor,
       postLikes,
-      isBlocked,
+      postBlocked,
       postImages,
       postVideos
     ] = await Promise.all([
-      this.getPostAuthor(postInfo.user_id),
-      this.getPostLikes(data.id),
-      this.getIsBlocked(data.id, postInfo.user_id),
-      this.getPostImages(data.id),
-      this.getPostVideos(data.id)
+      this.getPostAuthor([postInfo.user_id]),
+      this.getPostLikes([data.id]),
+      this.getPostsBlocked([data.id], postInfo.user_id),
+      this.getPostImages([data.id]),
+      this.getPostVideos([data.id])
     ]);
 
     this.response.success({
@@ -228,56 +227,62 @@ export default class PostController extends BaseController {
       like: postLikes.length,
       is_liked:
         postLikes.findIndex((like) => like.user_id === postAuthor[0].id) > -1,
-      is_blocked: isBlocked,
+      is_blocked: postBlocked.length > 0,
       can_edit: postInfo.user_id === user.id,
       image: postImages,
       video: postVideos
     });
   }
 
-  async getPostAuthor(userId: number) {
+  async getPostAuthor(userIds: number[]) {
     let postAuthor = await this.UserModel.query()
       .select("id", "name", "avatar", "online")
-      .where("id", userId);
+      .whereIn("id", userIds);
     return postAuthor;
   }
 
-  async getPostLikes(postId: number) {
+  async getPostLikes(postIds: number[]) {
     let postLikes = await this.LikeModel.query()
       .select()
-      .where("post_id", postId);
+      .whereIn("post_id", postIds);
     return postLikes;
   }
 
   // Người tạo post có block mình không
-  async getIsBlocked(postId: number, userId: number) {
-    let isBlocked = await this.PostBlockedUserModel.query()
+  async getPostsBlocked(postIds: number[], userId: number) {
+    let postsBlocked = await this.PostBlockedUserModel.query()
       .select()
-      .where("post_id", postId)
+      .whereIn("post_id", postIds)
       .andWhere("user_id", userId);
-    return isBlocked.length > 0;
+    return postsBlocked;
   }
 
-  async getPostImages(postId: number) {
+  async getPostImages(postIds: number[]) {
     let postImages = await this.PostImageModel.query()
-      .select("id", "url", "index")
-      .where("post_id", postId)
+      .select()
+      .whereIn("post_id", postIds)
       .orderBy("index")
       .orderBy("id");
     let apiHost = process.env.API_HOST;
     return postImages.map((image) => {
-      return { id: image.id, url: apiHost + image.url, index: image.index };
+      return {
+        id: image.id,
+        post_id: image.post_id,
+        url: apiHost + image.url,
+        index: image.index
+      };
     });
   }
 
-  async getPostVideos(postId: number) {
+  async getPostVideos(postIds: number[]) {
     let postImages = await this.PostVideoModel.query()
       .select()
-      .where("post_id", postId);
+      .whereIn("post_id", postIds);
     let apiHost = process.env.API_HOST;
     return postImages.map((video) => {
       return {
         id: video.id,
+        post_id: video.post_id,
         url: apiHost + video.url,
         thumb: apiHost + video.thumb
       };
