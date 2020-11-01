@@ -4,7 +4,7 @@ import _ from "lodash";
 import ApiException from "@app/Exceptions/ApiException";
 import fs from "fs";
 import path from "path";
-import moment from "moment"
+import moment from "moment";
 
 class BaseController {
   isProductionEnv = process.env.NODE_ENV === "production";
@@ -16,12 +16,24 @@ class BaseController {
             throw new Error("need implement Model")
         } */
   }
+
   insertImage(file) {
     let imageName = file.name;
     let time = moment().valueOf();
-    imageName = `${time}-` + imageName
+    imageName = `${time}-` + imageName;
     fs.writeFileSync(
       path.join(__dirname, "../../../public/static/data/images/", imageName),
+      file.data
+    );
+    return imageName;
+  }
+
+  insertVideo(file) {
+    let imageName = file.name;
+    let time = moment().valueOf();
+    imageName = `${time}-` + imageName;
+    fs.writeFileSync(
+      path.join(__dirname, "../../../public/static/data/videos/", imageName),
       file.data
     );
     return imageName;
@@ -123,7 +135,7 @@ class BaseController {
     }
     return {
       error: true,
-      message: message,
+      message: message
     };
   }
 
@@ -141,7 +153,7 @@ class BaseController {
     let result: { error: boolean; message: string; data?: any } = {
       error: false,
       message: "OK",
-      data: undefined,
+      data: undefined
     };
     let root = false;
     if (newData == null) {
@@ -161,7 +173,7 @@ class BaseController {
       if (isRequired && !isExists) {
         //nếu field là bắt buộc như lại không tồn tại trong data.
         let error = this.validateError("required", {
-          path,
+          path
         });
         debug(error.message);
         return error;
@@ -186,7 +198,7 @@ class BaseController {
               1,
               0,
               true,
-              false,
+              false
             ].includes(data);
             if (typeAllowed)
               _.set(newData, path, ["true", "1", 1, true].includes(data));
@@ -205,7 +217,7 @@ class BaseController {
           return this.validateError("Invalid Type", {
             path,
             typeOfField,
-            realType,
+            realType
           });
         }
       } else {
@@ -231,7 +243,7 @@ class BaseController {
               } else if (typeOfField[0].indexOf("!") !== -1) {
                 debug("element is required but array empty");
                 return this.validateError("required", {
-                  path: `${path}${fieldName}`,
+                  path: `${path}${fieldName}`
                 });
               }
             }
@@ -260,7 +272,7 @@ class BaseController {
               return this.validateError("Invalid Type", {
                 path: `${path}${fieldName}`,
                 typeOfField: "array",
-                realType: typeof fieldValue,
+                realType: typeof fieldValue
               });
             }
 
@@ -293,8 +305,8 @@ class BaseController {
           result = {
             ...result,
             data: {
-              ...result.data,
-            },
+              ...result.data
+            }
           };
         }
       }
@@ -302,7 +314,7 @@ class BaseController {
     if (root) {
       return {
         ...result,
-        data: newData,
+        data: newData
       };
     }
     return result;

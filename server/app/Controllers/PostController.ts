@@ -133,15 +133,7 @@ export default class PostController extends BaseController {
 
         // WRITE IMAGE FILE TO SERVER
         postImages.forEach((image, index) => {
-          let imageName = image.name;
-          fs.writeFileSync(
-            path.join(
-              __dirname,
-              "../../../public/static/data/images/",
-              imageName
-            ),
-            image.data
-          );
+          let imageName = this.insertImage(image);
           insertPostImages.push({
             post_id: postId,
             url: `/static/data/images/${imageName}`,
@@ -157,30 +149,14 @@ export default class PostController extends BaseController {
       }
 
       if (files.video) {
-        fs.writeFileSync(
-          path.join(
-            __dirname,
-            "../../../public/static/data/videos/",
-            files.video.name
-          ),
-          files.video.data
-        );
-        if (files.thumb) {
-          fs.writeFileSync(
-            path.join(
-              __dirname,
-              "../../../public/static/data/images/",
-              files.thumb.name
-            ),
-            files.thumb.data
-          );
-        }
+        let videoName = this.insertVideo(files.video);
+        let thumbName = files.thumb ? this.insertImage(files.thumb) : "";
 
         // INSERT POST_VIDEOS
         await this.PostVideoModel.query().insert({
           post_id: postId,
-          url: `/static/data/images/${files.video.name}`,
-          thumb: `/static/data/images/${files.thumb.name}`
+          url: `/static/data/videos/${videoName}`,
+          thumb: thumbName ? `/static/data/images/${thumbName}` : ""
         });
       }
     }
