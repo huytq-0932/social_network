@@ -1,7 +1,7 @@
 {
     "apps": [
       {
-        "name": "marketing-tool",
+        "name": "social network",
         "script": "./dist/server/index.js",
         "watch": false,
         "env_development": {

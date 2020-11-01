@@ -3,6 +3,7 @@ import Model from "@root/server/app/Models/UserModel";
 import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
+import moment from "moment";
 const random = require('random')
 
 export default class Controller extends BaseController {
@@ -63,6 +64,38 @@ export default class Controller extends BaseController {
       avatar: user.avatar,
       active: !user.avatar && !user.name ? -1 : 1,
     });
+  }
+
+  async changeInfoAfterSignup() {
+    let inputs = this.request.all();
+
+    const allowFields = {
+      username: "string!"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true,
+    });
+    let auth = this.request.auth;
+    let existUsername = await this.Model.query().whereNot("id", auth.id).findOne({username: data.username});
+    if (existUsername) {
+      throw new ApiException(9995, "username is existed");
+    }
+
+    const { files } = this.request;
+    await this.Model.query().patchAndFetchById(auth.id, data);
+    let avatarName = ""
+    if(files) {
+      avatarName = this.insertImage(files.avatar);
+      await this.Model.query().patchAndFetchById(auth.id, {avatar: `/static/data/images/${avatarName}`});
+    }
+   
+    return {
+      id: auth.id,
+      username: data.username,
+      avatar: avatarName,
+      created: moment().valueOf(),
+      phonenumber: auth.phonenumber
+    }
   }
 
   async checkVerifyCode() {

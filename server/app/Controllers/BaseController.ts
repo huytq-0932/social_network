@@ -2,6 +2,10 @@ import to from "await-to-js";
 const debug = require("debug")("mqcontroller");
 import _ from "lodash";
 import ApiException from "@app/Exceptions/ApiException";
+import fs from "fs";
+import path from "path";
+import moment from "moment"
+
 class BaseController {
   isProductionEnv = process.env.NODE_ENV === "production";
   request: any;
@@ -11,6 +15,16 @@ class BaseController {
     /*  if (!this.Model) {
             throw new Error("need implement Model")
         } */
+  }
+  insertImage(file) {
+    let imageName = file.name;
+    let time = moment().valueOf();
+    imageName = `${time}-` + imageName
+    fs.writeFileSync(
+      path.join(__dirname, "../../../public/static/data/images/", imageName),
+      file.data
+    );
+    return imageName;
   }
 
   sleep(min: number, max: number) {
@@ -26,7 +40,7 @@ class BaseController {
     let random = Math.floor(Math.random() * (maxM - minM + 1)) + minM;
     return random;
   }
-  
+
   async index() {
     const data = this.request.all();
     let result = await this.Model.query().getForGridTable(data);
