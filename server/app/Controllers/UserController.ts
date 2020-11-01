@@ -3,6 +3,7 @@ import Model from "@root/server/app/Models/UserModel";
 import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
+const random = require('random')
 
 export default class Controller extends BaseController {
   Model = Model;
@@ -62,6 +63,69 @@ export default class Controller extends BaseController {
       avatar: user.avatar,
       active: !user.avatar && !user.name ? -1 : 1,
     });
+  }
+
+  async checkVerifyCode() {
+    let inputs = this.request.all();
+
+    const allowFields = {
+      phonenumber: "string!",
+      code_verify: "string!"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true,
+    });
+    let exist = await this.Model.query().findOne({
+      phone: data.phonenumber,
+      code_verify: data.code_verify
+    });
+    if (!exist) {
+      throw new ApiException(9995, "User is not validated");
+    }
+
+    let token = Auth.generateJWT(
+      {
+        id: exist.id,
+        phonenumber: exist.phone,
+      },
+      {
+        key: authConfig["SECRET_KEY"],
+        expiresIn: authConfig["JWT_EXPIRE"],
+      }
+    );
+    return {
+      token,
+      id: exist.id
+    }
+  }
+
+  async getVerifyCode() {
+    let inputs = this.request.all();
+
+    const allowFields = {
+      phonenumber: "string!",
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true,
+    });
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    if (!exist) {
+      throw new ApiException(9995, "User is not validated");
+    }
+
+    let randomCode = random.int(100000, 999999);
+    while (true) {
+      let existCode = await this.Model.query().findOne({
+        code_verify: randomCode,
+      });
+      if (!existCode) {
+        await this.Model.query().patchAndFetchById(exist.id, {
+          code_verify: randomCode
+        });
+        break;
+      }
+    }
+    return randomCode;
   }
 
   async updatePassword() {

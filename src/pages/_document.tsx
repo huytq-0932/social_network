@@ -13,8 +13,8 @@ class MyDocument extends Document {
     - Chạy backend thì gõ lệnh yarn run dev-server <br/>
     B3: Dùng db tạo online sẵn config vào ENV <br/>
     B4: dev :)))<br/>
-    Ví dụ về api: <br/>
-    <img src="https://i.imgur.com/pxjjt4d.png" alt="Girl in a jacket"/>
+    Link api: https://luandz.cf/it4788 <br/>
+    File excel tiến độ dự án: <a href="http://bit.ly/it4788" target = "_blank">http://bit.ly/it4788</a>
 
      </div>
         );
