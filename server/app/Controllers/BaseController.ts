@@ -20,7 +20,7 @@ class BaseController {
   insertImage(file) {
     let imageName = file.name;
     let time = moment().valueOf();
-    imageName = `${time}-` + imageName;
+    imageName = `${time}-${imageName}`;
     fs.writeFileSync(
       path.join(__dirname, "../../../public/static/data/images/", imageName),
       file.data

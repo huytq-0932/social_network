@@ -92,7 +92,7 @@ export default class Controller extends BaseController {
     return {
       id: auth.id,
       username: data.username,
-      avatar: avatarName,
+      avatar: `/static/data/images/${avatarName}`,
       created: moment().valueOf(),
       phonenumber: auth.phonenumber
     }
