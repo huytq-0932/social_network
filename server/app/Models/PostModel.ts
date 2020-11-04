@@ -10,6 +10,7 @@ class PostModel extends BaseModel {
   banned: string;
   state: number;
   can_comment: boolean;
+  image!: Array<Object>;
 }
 
 export default PostModel;

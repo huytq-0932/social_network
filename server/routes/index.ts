@@ -18,11 +18,21 @@ Route.group(() => {
       "updatePassword"
     );
     Route.get("/get_user_info", "UserController.getInfo").name("getInfo");
-    Route.post("/get_verify_code", "UserController.getVerifyCode").name("getVerifyCode");
-    Route.post("/check_verify_code", "UserController.checkVerifyCode").name("checkVerifyCode");
-    Route.post("/change_info_after_signup", "UserController.changeInfoAfterSignup").name("changeInfoAfterSignup");
+    Route.post("/get_verify_code", "UserController.getVerifyCode").name(
+      "getVerifyCode"
+    );
+    Route.post("/check_verify_code", "UserController.checkVerifyCode").name(
+      "checkVerifyCode"
+    );
+    Route.post(
+      "/change_info_after_signup",
+      "UserController.changeInfoAfterSignup"
+    ).name("changeInfoAfterSignup");
 
     // Post
+    Route.post("/get_list_posts", "PostController.getListPosts").name(
+      "getListPosts"
+    );
     Route.get("/get_post", "PostController.getPostById").name("getPostById");
     Route.post("/add_post", "PostController.createPost").name("createPost");
     Route.delete("/delete_post", "PostController.deletePostById").name(

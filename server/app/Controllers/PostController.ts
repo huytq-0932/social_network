@@ -7,8 +7,6 @@ import PostBlockedUsers from "@root/server/app/Models/PostBlockedUsers";
 import PostImages from "@root/server/app/Models/PostImages";
 import PostVideos from "@root/server/app/Models/PostVideos";
 import ApiException from "@app/Exceptions/ApiException";
-import fs from "fs";
-import path from "path";
 
 export default class PostController extends BaseController {
   UserModel = UserModel;
@@ -17,6 +15,109 @@ export default class PostController extends BaseController {
   PostBlockedUserModel = PostBlockedUsers;
   PostImageModel = PostImages;
   PostVideoModel = PostVideos;
+
+  async getListPosts() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      user_id: "number",
+      in_campaign: "string",
+      campaign_id: "number",
+      latitude: "string",
+      longitude: "string",
+      last_id: "number",
+      index: "number",
+      count: "number"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true
+    });
+    let auth = this.request.auth;
+    let user = await this.UserModel.query().findById(auth.id);
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
+    }
+
+    let count = data.count || 20;
+    let index = data.index || 0;
+    let { posts, currentLastPostId } = await this.getNLastPost(
+      data.last_id,
+      index,
+      count
+    );
+    let postIds = posts.map((post) => post.id);
+    let postsUserIds = posts.map((post) => post.user_id);
+
+    const [
+      postsAuthors,
+      postsLikes,
+      postsBlocked,
+      postsImages,
+      postsVideos
+    ] = await Promise.all([
+      this.getPostAuthor(postsUserIds),
+      this.getPostLikes(postIds),
+      this.getPostsBlocked(postIds, user.id),
+      this.getPostImages(postIds),
+      this.getPostVideos(postIds)
+    ]);
+    let postsInfo = posts.map((post) => {
+      let postLikes = postsLikes.filter((like) => like.post_id === post.id);
+      return {
+        ...post,
+        author: _.find(postsAuthors, { id: post.user_id }),
+        like: postLikes.length,
+        is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
+        is_blocked:
+          postsBlocked.filter((block) => block.post_id === post.id).length > 0,
+        can_edit: post.user_id === user.id,
+        image: postsImages.filter((image) => image.post_id === post.id),
+        video: postsVideos.filter((video) => video.post_id === post.id)
+      };
+    });
+    return {
+      posts: postsInfo,
+      new_items:
+        !data.last_id || currentLastPostId === data.last_id
+          ? 0
+          : posts.filter((post) => post.id > data.last_id).length,
+      last_id: currentLastPostId
+    };
+  }
+
+  async getNLastPost(lastId, index, count) {
+    let currentLastPostId = await this.getLastPostId();
+    if (!lastId || currentLastPostId === lastId) {
+      let posts = await this.PostModel.query()
+        .select()
+        .limit(count)
+        .offset(index)
+        .orderBy("posts.id", "DESC");
+      return { posts, currentLastPostId };
+    } else {
+      let posts = await this.PostModel.query()
+        .select()
+        .whereNotIn(
+          "id",
+          this.PostModel.query()
+            .select("id")
+            .where("id", "<=", lastId)
+            .limit(index)
+            .orderBy("posts.id", "DESC")
+        )
+        .limit(count)
+        .orderBy("posts.id", "DESC");
+      return { posts, currentLastPostId };
+    }
+  }
+
+  async getLastPostId() {
+    let lastPost = await this.PostModel.query()
+      .select("id")
+      .orderBy("id", "desc")
+      .limit(1);
+    return lastPost[0].id;
+  }
 
   async editPost() {
     const inputs = this.request.all();
@@ -192,7 +293,7 @@ export default class PostController extends BaseController {
     ] = await Promise.all([
       this.getPostAuthor([postInfo.user_id]),
       this.getPostLikes([data.id]),
-      this.getPostsBlocked([data.id], postInfo.user_id),
+      this.getPostsBlocked([data.id], user.id),
       this.getPostImages([data.id]),
       this.getPostVideos([data.id])
     ]);
@@ -201,8 +302,7 @@ export default class PostController extends BaseController {
       ...postInfo,
       author: postAuthor,
       like: postLikes.length,
-      is_liked:
-        postLikes.findIndex((like) => like.user_id === postAuthor[0].id) > -1,
+      is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
       is_blocked: postBlocked.length > 0,
       can_edit: postInfo.user_id === user.id,
       image: postImages,
