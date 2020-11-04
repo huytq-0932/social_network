@@ -39,6 +39,10 @@ Route.group(() => {
       "deletePostById"
     );
     Route.put("/edit_post", "PostController.editPost").name("editPost");
+
+    Route.post("/report_post", "ReportPostController.reportPost").name(
+      "reportPost"
+    );
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
