@@ -4,9 +4,9 @@ import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
-const random = require('random')
+const random = require("random");
 
-export default class Controller extends BaseController {
+export default class UserController extends BaseController {
   Model = Model;
   async signup() {
     const inputs = this.request.all();
@@ -14,7 +14,7 @@ export default class Controller extends BaseController {
       name: "string",
       phonenumber: "string!",
       password: "string!",
-      uuid: "string!",
+      uuid: "string!"
     };
     const data = this.validate(inputs, allowFields);
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
@@ -26,7 +26,7 @@ export default class Controller extends BaseController {
     let result = await this.Model.query().insert({
       phone: data.phone,
       password: data.password,
-      name: data.name || "new member",
+      name: data.name || "new member"
     });
     delete result.password;
     return result;
@@ -35,13 +35,13 @@ export default class Controller extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       phonenumber: "string!",
-      password: "string!",
+      password: "string!"
     };
 
     const data = this.validate(inputs, allowFields);
     let user = await this.Model.checkLogin({
       phonenumber: data.phonenumber,
-      password: data.password,
+      password: data.password
     });
     if (!user) {
       throw new ApiException(7000, "Can not login");
@@ -49,11 +49,11 @@ export default class Controller extends BaseController {
     let token = Auth.generateJWT(
       {
         id: user.id,
-        phonenumber: user.phone,
+        phonenumber: user.phone
       },
       {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"],
+        expiresIn: authConfig["JWT_EXPIRE"]
       }
     );
 
@@ -62,7 +62,7 @@ export default class Controller extends BaseController {
       username: user.name,
       token,
       avatar: user.avatar,
-      active: !user.avatar && !user.name ? -1 : 1,
+      active: !user.avatar && !user.name ? -1 : 1
     });
   }
 
@@ -73,29 +73,33 @@ export default class Controller extends BaseController {
       username: "string!"
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true,
+      removeNotAllow: true
     });
     let auth = this.request.auth;
-    let existUsername = await this.Model.query().whereNot("id", auth.id).findOne({username: data.username});
+    let existUsername = await this.Model.query()
+      .whereNot("id", auth.id)
+      .findOne({ username: data.username });
     if (existUsername) {
       throw new ApiException(9995, "username is existed");
     }
 
     const { files } = this.request;
     await this.Model.query().patchAndFetchById(auth.id, data);
-    let avatarName = ""
-    if(files) {
+    let avatarName = "";
+    if (files) {
       avatarName = this.insertImage(files.avatar);
-      await this.Model.query().patchAndFetchById(auth.id, {avatar: `/static/data/images/${avatarName}`});
+      await this.Model.query().patchAndFetchById(auth.id, {
+        avatar: `/static/data/images/${avatarName}`
+      });
     }
-   
+
     return {
       id: auth.id,
       username: data.username,
       avatar: `/static/data/images/${avatarName}`,
       created: moment().valueOf(),
       phonenumber: auth.phonenumber
-    }
+    };
   }
 
   async checkVerifyCode() {
@@ -106,7 +110,7 @@ export default class Controller extends BaseController {
       code_verify: "string!"
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true,
+      removeNotAllow: true
     });
     let exist = await this.Model.query().findOne({
       phone: data.phonenumber,
@@ -119,27 +123,27 @@ export default class Controller extends BaseController {
     let token = Auth.generateJWT(
       {
         id: exist.id,
-        phonenumber: exist.phone,
+        phonenumber: exist.phone
       },
       {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"],
+        expiresIn: authConfig["JWT_EXPIRE"]
       }
     );
     return {
       token,
       id: exist.id
-    }
+    };
   }
 
   async getVerifyCode() {
     let inputs = this.request.all();
 
     const allowFields = {
-      phonenumber: "string!",
+      phonenumber: "string!"
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true,
+      removeNotAllow: true
     });
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
@@ -149,7 +153,7 @@ export default class Controller extends BaseController {
     let randomCode = random.int(100000, 999999);
     while (true) {
       let existCode = await this.Model.query().findOne({
-        code_verify: randomCode,
+        code_verify: randomCode
       });
       if (!existCode) {
         await this.Model.query().patchAndFetchById(exist.id, {
@@ -166,10 +170,10 @@ export default class Controller extends BaseController {
 
     const allowFields = {
       password: "string!",
-      token: "string!",
+      token: "string!"
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true,
+      removeNotAllow: true
     });
     let auth = this.request.auth;
     let user = await this.Model.query().findById(auth.id);
@@ -187,13 +191,13 @@ export default class Controller extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       token: "string!",
-      user_id: "string",
+      user_id: "string"
     };
     const data = this.validate(inputs, allowFields);
     try {
       const decodedToken = await Auth.decodeJWT(data.token, {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"],
+        expiresIn: authConfig["JWT_EXPIRE"]
       });
       const id = !data.user_id ? decodedToken.id : data.user_id;
       const user = await this.Model.getInfo(id);

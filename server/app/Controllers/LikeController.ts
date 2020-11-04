@@ -5,7 +5,7 @@ import PostModel from "@root/server/app/Models/PostModel";
 import ApiException from "@app/Exceptions/ApiException";
 import _ from "lodash";
 
-export default class ReportPostController extends BaseController {
+export default class LikeController extends BaseController {
   LikeModel = LikeModel;
   UserModel = UserModel;
   PostModel = PostModel;

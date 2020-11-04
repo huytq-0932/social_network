@@ -43,6 +43,14 @@ Route.group(() => {
       "reportPost"
     );
     Route.post("/like", "LikeController.like").name("like");
+
+    // Comment
+    Route.post("/get_comment", "CommentController.getComment").name(
+      "getComment"
+    );
+    Route.post("/set_comment", "CommentController.setComment").name(
+      "setComment"
+    );
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
