@@ -21,22 +21,14 @@ export default class CommentController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let user = await this.validateUserToken(this.request.auth.id);
+    await this.validateUserToken(this.request.auth.id);
 
     let postId = data.id;
     let { index, count } = data;
     if (!(await this.isPostExist(postId))) {
       throw new ApiException(9992, "Post is not existed");
     }
-    let comments = await this.retrieveListComment(postId, index, count);
-    return comments.map((comment) => {
-      const { posterId, posterName, posterAvatar } = comment;
-      delete comment.posterId;
-      delete comment.posterName;
-      delete comment.posterAvatar;
-      comment.poster = { id: posterId, name: posterName, avatar: posterAvatar };
-      return comment;
-    });
+    return this.retrieveListComment(postId, index, count);
   }
 
   async setComment() {
@@ -57,6 +49,8 @@ export default class CommentController extends BaseController {
     if (!(await this.isPostExist(postId))) {
       throw new ApiException(9992, "Post is not existed");
     }
+    await this.insertComment(postId, user.id, data.comment);
+    return this.retrieveListComment(postId, data.index, data.count);
   }
 
   async validateUserToken(userId) {
@@ -70,6 +64,15 @@ export default class CommentController extends BaseController {
   async isPostExist(postId) {
     let post = await this.PostModel.query().findById(postId);
     return !!post;
+  }
+
+  async insertComment(postId, userId, comment) {
+    await this.CommentModel.query().insert({
+      user_id: userId,
+      post_id: postId,
+      comment
+    });
+    return true;
   }
 
   async retrieveListComment(postId, index, count) {
@@ -87,6 +90,13 @@ export default class CommentController extends BaseController {
       .orderBy("id", "DESC")
       .offset(index)
       .limit(count);
-    return comments;
+    return comments.map((comment) => {
+      const { posterId, posterName, posterAvatar } = comment;
+      delete comment.posterId;
+      delete comment.posterName;
+      delete comment.posterAvatar;
+      comment.poster = { id: posterId, name: posterName, avatar: posterAvatar };
+      return comment;
+    });
   }
 }
