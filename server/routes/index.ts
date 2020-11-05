@@ -1,4 +1,5 @@
 import Route from "@core/Routes";
+import UserController from "@app/Controllers/UserController";
 
 const ExtendMiddleware = require("@app/Middlewares/ExtendMiddleware");
 const AuthApiMiddleware = require("@app/Middlewares/AuthApiMiddleware");
@@ -11,6 +12,7 @@ const {
 Route.group(() => {
   Route.post("/login", "UserController.login").name("login");
   Route.post("/signup", "UserController.signup").name("signup");
+  Route.get("/all_users", "UserController.getAllUsers").name("getAllUsers")
 
   Route.group(() => {
     Route.resource("/users", "UserController").name("users");
@@ -28,9 +30,11 @@ Route.group(() => {
       "/change_info_after_signup",
       "UserController.changeInfoAfterSignup"
     ).name("changeInfoAfterSignup");
-
     Route.post("/set_request_friend", "FriendRequestController.setRequestFriend").name(
       "setRequestFriend"
+    )
+    Route.get("/get_requested_friends", "FriendRequestController.getRequestedFriends").name(
+      "getRequestedFriends"
     )
 
     // Post

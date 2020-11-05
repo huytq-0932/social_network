@@ -15,10 +15,6 @@ export default class FriendRequestController extends BaseController {
     };
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
-    const user = await this.UserModel.query().findOne({id: data.user_id});
-    if (!user) {
-      throw new ApiException(9995, "User is not validated");
-    }
     const request = {
       from_user_id: auth.id,
       to_user_id: data.user_id
@@ -33,6 +29,33 @@ export default class FriendRequestController extends BaseController {
 
     this.response.success({
       requested_friends: numberRequests.length.toString()
+    })
+  }
+
+  async getRequestedFriends() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      index: "number!",
+      count: "number!"
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    const friendRequests = await this.FriendRequestModel.query().where({to_user_id: auth.id})
+    const users = await this.UserModel.query()
+    const requests = friendRequests.map(request => {
+      const user = users.filter(user => user.id == request.from_user_id)[0]
+      return {
+        id: user.id,
+        username: user.name,
+        avatar: user.avatar,
+        created: request.createdAt
+      }
+    })
+
+    this.response.success({
+      request: requests.slice(data.index, data.index + data.count),
+      total: requests.length
     })
   }
 }

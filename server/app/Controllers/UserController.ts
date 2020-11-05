@@ -4,10 +4,12 @@ import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
+
 const random = require("random");
 
 export default class UserController extends BaseController {
   Model = Model;
+
   async signup() {
     const inputs = this.request.all();
     const allowFields = {
@@ -17,20 +19,21 @@ export default class UserController extends BaseController {
       uuid: "string!"
     };
     const data = this.validate(inputs, allowFields);
-    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    let exist = await this.Model.query().findOne({phone: data.phonenumber});
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
-    data.password = this.Model.hash(data.password);
+    const password = await this.Model.hash(data.password);
 
     let result = await this.Model.query().insert({
-      phone: data.phone,
-      password: data.password,
+      phone: data.phonenumber,
+      password: password,
       name: data.name || "new member"
     });
     delete result.password;
     return result;
   }
+
   async login() {
     const inputs = this.request.all();
     const allowFields = {
@@ -78,12 +81,12 @@ export default class UserController extends BaseController {
     let auth = this.request.auth;
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({ username: data.username });
+      .findOne({username: data.username});
     if (existUsername) {
       throw new ApiException(9995, "username is existed");
     }
 
-    const { files } = this.request;
+    const {files} = this.request;
     await this.Model.query().patchAndFetchById(auth.id, data);
     let avatarName = "";
     if (files) {
@@ -145,7 +148,7 @@ export default class UserController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    let exist = await this.Model.query().findOne({phone: data.phonenumber});
     if (!exist) {
       throw new ApiException(9995, "User is not validated");
     }
@@ -208,5 +211,12 @@ export default class UserController extends BaseController {
     } catch (e) {
       throw new ApiException(9998, "Token is invalid");
     }
+  }
+
+  // For development
+  async getAllUsers() {
+    this.response.success({
+      users: await this.Model.query()
+    })
   }
 }
