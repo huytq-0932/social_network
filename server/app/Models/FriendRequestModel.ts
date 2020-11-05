@@ -7,6 +7,7 @@ class FriendRequestModel extends BaseModel {
   id: number;
   from_user_id: number;
   to_user_id: number;
+  createdAt: string;
 }
 
 export default FriendRequestModel;
