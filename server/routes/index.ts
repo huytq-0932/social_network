@@ -29,6 +29,10 @@ Route.group(() => {
       "UserController.changeInfoAfterSignup"
     ).name("changeInfoAfterSignup");
 
+    Route.post("/set_request_friend", "FriendRequestController.setRequestFriend").name(
+      "setRequestFriend"
+    )
+
     // Post
     Route.post("/get_list_posts", "PostController.getListPosts").name(
       "getListPosts"
