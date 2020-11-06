@@ -43,6 +43,10 @@ Route.group(() => {
     // Comment
     Route.post("/get_comment", "CommentController.getComment").name("getComment");
     Route.post("/set_comment", "CommentController.setComment").name("setComment");
+
+    // Search
+    Route.post("/get_saved_search", "SearchController.getSavedSearch").name("getSavedSearch");
+    Route.delete("/del_saved_search", "SearchController.delSavedSearch").name("delSavedSearch");
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])

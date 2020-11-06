@@ -167,8 +167,7 @@ class BaseController {
       let isRequired = typeOfField.indexOf("!") !== -1; //kiểm tra dấu ! ở cuối là bắt buộc
       typeOfField = typeOfField.replace(/\!/, ""); //tách lấy kiểu dữ liệu mong muốn
       let isExists = data != null && data !== "";
-      if (path[path.length - 1] == ".")
-        path = path.substring(0, path.length - 1);
+      if (path[path.length - 1] == ".") path = path.substring(0, path.length - 1);
 
       if (isRequired && !isExists) {
         //nếu field là bắt buộc như lại không tồn tại trong data.
@@ -190,18 +189,8 @@ class BaseController {
             if (typeAllowed) _.set(newData, path, Number(data));
           } else if (typeOfField == "boolean") {
             if (typeof data == "string") data = data.toLowerCase();
-            typeAllowed = [
-              "true",
-              "false",
-              "1",
-              "0",
-              1,
-              0,
-              true,
-              false
-            ].includes(data);
-            if (typeAllowed)
-              _.set(newData, path, ["true", "1", 1, true].includes(data));
+            typeAllowed = ["true", "false", "1", "0", 1, 0, true, false].includes(data);
+            if (typeAllowed) _.set(newData, path, ["true", "1", 1, true].includes(data));
           } else if (typeOfField == "date" || typeOfField == "moment") {
             typeAllowed = new Date(data).toString() != "Invalid Date";
             if (typeAllowed) _.set(newData, path, new Date(data));
