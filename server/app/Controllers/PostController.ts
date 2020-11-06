@@ -16,6 +16,26 @@ export default class PostController extends BaseController {
   PostImageModel = PostImages;
   PostVideoModel = PostVideos;
 
+  async checkNewItem() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      last_id: "number",
+      category_id: "number"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true
+    });
+    let auth = this.request.auth;
+    let user = await this.UserModel.query().findById(auth.id);
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
+    }
+
+    const new_items: any = await this.PostModel.query().count().where("id", ">", data.last_id);
+    return { new_items: parseInt(new_items[0].count) };
+  }
+
   async getListPosts() {
     const inputs = this.request.all();
     const allowFields = {
@@ -40,21 +60,11 @@ export default class PostController extends BaseController {
 
     let count = data.count || 20;
     let index = data.index || 0;
-    let { posts, currentLastPostId } = await this.getNLastPost(
-      data.last_id,
-      index,
-      count
-    );
+    let { posts, currentLastPostId } = await this.getNLastPost(data.last_id, index, count);
     let postIds = posts.map((post) => post.id);
     let postsUserIds = posts.map((post) => post.user_id);
 
-    const [
-      postsAuthors,
-      postsLikes,
-      postsBlocked,
-      postsImages,
-      postsVideos
-    ] = await Promise.all([
+    const [postsAuthors, postsLikes, postsBlocked, postsImages, postsVideos] = await Promise.all([
       this.getPostAuthor(postsUserIds),
       this.getPostLikes(postIds),
       this.getPostsBlocked(postIds, user.id),
@@ -68,8 +78,7 @@ export default class PostController extends BaseController {
         author: _.find(postsAuthors, { id: post.user_id }),
         like: postLikes.length,
         is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
-        is_blocked:
-          postsBlocked.filter((block) => block.post_id === post.id).length > 0,
+        is_blocked: postsBlocked.filter((block) => block.post_id === post.id).length > 0,
         can_edit: post.user_id === user.id,
         image: postsImages.filter((image) => image.post_id === post.id),
         video: postsVideos.filter((video) => video.post_id === post.id)
@@ -112,10 +121,7 @@ export default class PostController extends BaseController {
   }
 
   async getLastPostId() {
-    let lastPost = await this.PostModel.query()
-      .select("id")
-      .orderBy("id", "desc")
-      .limit(1);
+    let lastPost = await this.PostModel.query().select("id").orderBy("id", "desc").limit(1);
     return lastPost[0].id;
   }
 
@@ -141,16 +147,11 @@ export default class PostController extends BaseController {
     }
     let postInfo: PostModel = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
-    if (postInfo.user_id !== user.id)
-      throw new ApiException(1009, "Not access");
+    if (postInfo.user_id !== user.id) throw new ApiException(1009, "Not access");
 
     // Check permission delete image in post
-    let imageDelRecord = await this.PostImageModel.query()
-      .select()
-      .whereIn("id", data.image_del);
-    if (
-      _.findIndex(imageDelRecord, (record) => record.post_id !== data.id) > -1
-    ) {
+    let imageDelRecord = await this.PostImageModel.query().select().whereIn("id", data.image_del);
+    if (_.findIndex(imageDelRecord, (record) => record.post_id !== data.id) > -1) {
       throw new ApiException(1009, "Not access");
     }
 
@@ -227,8 +228,7 @@ export default class PostController extends BaseController {
   async writeAndInsertFile(files, postId, imageSort) {
     if (files) {
       if (files.image) {
-        let postImages =
-          files.image instanceof Array ? files.image : [files.image];
+        let postImages = files.image instanceof Array ? files.image : [files.image];
 
         let insertPostImages = [];
 
@@ -284,13 +284,7 @@ export default class PostController extends BaseController {
     let postInfo = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
 
-    const [
-      postAuthor,
-      postLikes,
-      postBlocked,
-      postImages,
-      postVideos
-    ] = await Promise.all([
+    const [postAuthor, postLikes, postBlocked, postImages, postVideos] = await Promise.all([
       this.getPostAuthor([postInfo.user_id]),
       this.getPostLikes([data.id]),
       this.getPostsBlocked([data.id], user.id),
@@ -318,9 +312,7 @@ export default class PostController extends BaseController {
   }
 
   async getPostLikes(postIds: number[]) {
-    let postLikes = await this.LikeModel.query()
-      .select()
-      .whereIn("post_id", postIds);
+    let postLikes = await this.LikeModel.query().select().whereIn("post_id", postIds);
     return postLikes;
   }
 
@@ -351,9 +343,7 @@ export default class PostController extends BaseController {
   }
 
   async getPostVideos(postIds: number[]) {
-    let postImages = await this.PostVideoModel.query()
-      .select()
-      .whereIn("post_id", postIds);
+    let postImages = await this.PostVideoModel.query().select().whereIn("post_id", postIds);
     let apiHost = process.env.API_HOST;
     return postImages.map((video) => {
       return {
