@@ -47,6 +47,7 @@ Route.group(() => {
     // Search
     Route.post("/get_saved_search", "SearchController.getSavedSearch").name("getSavedSearch");
     Route.delete("/del_saved_search", "SearchController.delSavedSearch").name("delSavedSearch");
+    Route.post("/search", "SearchController.searchPost").name("searchPost");
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
