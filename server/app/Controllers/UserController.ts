@@ -4,6 +4,7 @@ import ApiException from "@app/Exceptions/ApiException";
 import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
+import _ from "lodash";
 
 const random = require("random");
 
@@ -19,7 +20,7 @@ export default class UserController extends BaseController {
       uuid: "string!"
     };
     const data = this.validate(inputs, allowFields);
-    let exist = await this.Model.query().findOne({phone: data.phonenumber});
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
@@ -81,12 +82,12 @@ export default class UserController extends BaseController {
     let auth = this.request.auth;
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({username: data.username});
+      .findOne({ username: data.username });
     if (existUsername) {
       throw new ApiException(9995, "username is existed");
     }
 
-    const {files} = this.request;
+    const { files } = this.request;
     await this.Model.query().patchAndFetchById(auth.id, data);
     let avatarName = "";
     if (files) {
@@ -148,7 +149,7 @@ export default class UserController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
-    let exist = await this.Model.query().findOne({phone: data.phonenumber});
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
       throw new ApiException(9995, "User is not validated");
     }
@@ -190,6 +191,59 @@ export default class UserController extends BaseController {
     return result;
   }
 
+  async setUserInfo() {
+    let inputs = this.request.all();
+
+    const allowFields = {
+      token: "string!",
+      username: "string",
+      description: "string",
+      address: "string",
+      city: "string",
+      country: "string",
+      link: "string"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true
+    });
+    let auth = this.request.auth;
+    let user = await this.Model.query().findById(auth.id);
+
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
+    }
+    let existUsername = await this.Model.query()
+      .whereNot("id", auth.id)
+      .findOne({ username: data.username });
+    if (existUsername) {
+      throw new ApiException(9995, "Username is existed");
+    }
+
+    const { files } = this.request;
+    const insertFiles = this.writeUserInfoFile(files);
+    let updateInfo = { ...data, ...insertFiles };
+    delete updateInfo["token"];
+    updateInfo.updatedAt = new Date();
+    let result = await user.updateInfo(updateInfo);
+    delete result["password"];
+    return result;
+  }
+
+  writeUserInfoFile(files) {
+    let insertFiles = {};
+    if (files) {
+      if (files.avatar) {
+        let avatarName = this.insertImage(files.avatar);
+        insertFiles["avatar"] = `/static/data/images/${avatarName}`;
+      }
+      if (files.cover_image) {
+        let coverImageName = this.insertImage(files.cover_image);
+        insertFiles["cover_image"] = `/static/data/images/${coverImageName}`;
+      }
+    }
+    return insertFiles;
+  }
+
   async getInfo() {
     const inputs = this.request.all();
     const allowFields = {
@@ -217,6 +271,6 @@ export default class UserController extends BaseController {
   async getAllUsers() {
     this.response.success({
       users: await this.Model.query()
-    })
+    });
   }
 }

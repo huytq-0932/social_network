@@ -18,6 +18,7 @@ Route.group(() => {
     Route.resource("/users", "UserController").name("users");
     Route.put("/change_password", "UserController.updatePassword").name("updatePassword");
     Route.get("/get_user_info", "UserController.getInfo").name("getInfo");
+    Route.post("/set_user_info", "UserController.setUserInfo").name("setUserInfo");
     Route.post("/get_verify_code", "UserController.getVerifyCode").name("getVerifyCode");
     Route.post("/check_verify_code", "UserController.checkVerifyCode").name("checkVerifyCode");
     Route.post("/change_info_after_signup", "UserController.changeInfoAfterSignup").name(
