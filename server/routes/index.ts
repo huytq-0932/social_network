@@ -24,10 +24,10 @@ Route.group(() => {
     Route.post("/change_info_after_signup", "UserController.changeInfoAfterSignup").name(
       "changeInfoAfterSignup"
     );
-    Route.post("/set_request_friend", "FriendRequestController.setRequestFriend").name(
+    Route.post("/set_request_friend", "FriendshipController.setRequestFriend").name(
       "setRequestFriend"
     );
-    Route.get("/get_requested_friends", "FriendRequestController.getRequestedFriends").name(
+    Route.get("/get_requested_friends", "FriendshipController.getRequestedFriends").name(
       "getRequestedFriends"
     );
 
