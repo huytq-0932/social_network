@@ -2,13 +2,12 @@ import BaseModel from "./BaseModel";
 
 class FriendshipModel extends BaseModel {
   static tableName = "friendship";
-  static NO_FRIENDSHIP = -1
-  static REQUEST = 1
-  static FRIEND = 2
-  static BLOCK = 3
 
-  static ACCEPT_REQUEST = "1"
-  static REJECT_REQUEST = "0"
+  static Constant = {
+    STATUS_REQUEST: 1,
+    STATUS_FRIEND: 2,
+    STATUS_BLOCK: 3
+  }
 
   //fields
   id: number;
@@ -43,7 +42,7 @@ class FriendshipModel extends BaseModel {
   static async acceptFriendRequest(senderId, receiverId) {
     if (!(await this.isRequesting(senderId, receiverId))) return false
     return this.query().update({
-      status: FriendshipModel.FRIEND,
+      status: FriendshipModel.Constant.STATUS_FRIEND,
       action_user_id: receiverId
     })
       .where({
@@ -57,23 +56,26 @@ class FriendshipModel extends BaseModel {
     return this.query().insert({
       user_one_id: senderId,
       user_two_id: receiverId,
-      status: FriendshipModel.REQUEST,
+      status: FriendshipModel.Constant.STATUS_REQUEST,
       action_user_id: senderId
     })
   }
 
   static async block(blockerId, isBlockedUserId) {
+    const isBlocked = await this.isBlocked(blockerId, isBlockedUserId)
+    if (isBlocked) return false
+
     const friendship = await this.getFriendship(blockerId, isBlockedUserId)
     if (!friendship) {
       return this.query().insert({
         user_one_id: blockerId,
         user_two_id: isBlockedUserId,
-        status: FriendshipModel.BLOCK,
+        status: FriendshipModel.Constant.STATUS_BLOCK,
         action_user_id: blockerId
       })
     }
     return this.query().update({
-      status: FriendshipModel.BLOCK,
+      status: FriendshipModel.Constant.STATUS_BLOCK,
       action_user_id: blockerId
     })
       .where({
@@ -83,37 +85,42 @@ class FriendshipModel extends BaseModel {
       .orWhere({
         user_one_id: isBlockedUserId,
         user_two_id: blockerId
-      })
+      });
+  }
+
+  static async unblock(blockerId, isBlockedUserId) {
+    const isBlocked = await this.isBlocked(blockerId, isBlockedUserId)
+    if (!isBlocked) return false
+    return this.removeFriendship(blockerId, isBlockedUserId)
   }
 
   static async getSentRequests(userId) {
-    return this.query().where({action_user_id: userId, status: FriendshipModel.REQUEST})
+    return this.query().where({action_user_id: userId, status: FriendshipModel.Constant.STATUS_REQUEST})
   }
 
   static async getReceivedRequests(userId) {
     return this.query()
       .whereNot({action_user_id: userId})
-      .andWhere({user_two_id: userId, status: FriendshipModel.REQUEST})
+      .andWhere({user_two_id: userId, status: FriendshipModel.Constant.STATUS_REQUEST})
   }
 
-  static async unblock(blockerId, isBlockedUserId) {
-    if (await this.isBlocked(blockerId, isBlockedUserId)) return false
-    return this.removeFriendship(blockerId, isBlockedUserId)
+  static async getBlockedFriendship(userId) {
+    return this.query().where({action_user_id: userId, status: FriendshipModel.Constant.STATUS_BLOCK})
   }
 
   static async isFriend(firstUserId, secondUserId) {
     const friendship = await this.getFriendship(firstUserId, secondUserId)
-    return friendship && friendship.status == FriendshipModel.FRIEND
+    return friendship && friendship.status == FriendshipModel.Constant.STATUS_FRIEND
   }
 
   static async isBlocked(firstUserId, secondUserId) {
     const friendship = await this.getFriendship(firstUserId, secondUserId)
-    return friendship && friendship.status == FriendshipModel.BLOCK
+    return friendship && friendship.status == FriendshipModel.Constant.STATUS_BLOCK
   }
 
   static async isRequesting(senderId, receivedId) {
     const friendship = await this.getFriendship(senderId, receivedId)
-    return friendship && friendship.status == FriendshipModel.REQUEST && friendship.action_user_id == senderId
+    return friendship && friendship.status == FriendshipModel.Constant.STATUS_REQUEST && friendship.action_user_id == senderId
   }
 }
 
