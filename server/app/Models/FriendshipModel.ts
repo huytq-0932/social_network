@@ -104,6 +104,22 @@ class FriendshipModel extends BaseModel {
       .andWhere({user_two_id: userId, status: FriendshipModel.Constant.STATUS_REQUEST})
   }
 
+  static async getUserFriends(userId) {
+    return this.query()
+      .where({user_one_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND})
+      .orWhere({user_two_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND})
+  }
+
+  static async getMultipleFriendsCount(firstUserId, secondUserId) {
+    const firstFriends = (await this.getUserFriends(firstUserId)).map(friendship =>
+      friendship.user_two_id == firstUserId ? friendship.user_one_id : friendship.user_two_id
+    )
+    const secondFriends = (await this.getUserFriends(secondUserId)).map(friendship =>
+      friendship.user_two_id == firstUserId ? friendship.user_one_id : friendship.user_two_id
+    )
+    return firstFriends.filter(id => secondFriends.includes(id) && id != secondUserId).length
+  }
+
   static async getBlockedFriendship(userId) {
     return this.query().where({action_user_id: userId, status: FriendshipModel.Constant.STATUS_BLOCK})
   }
