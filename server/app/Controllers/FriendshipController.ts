@@ -8,6 +8,13 @@ export default class FriendshipController extends BaseController {
   Friendship = FriendshipModel;
   UserModel = UserModel;
 
+  static Constant = {
+    REQUEST_ACCEPT: "1",
+    REQUEST_REJECT: "0",
+    TYPE_BLOCK: 0,
+    TYPE_UNBLOCK: 1
+  }
+
   async setRequestFriend() {
     const inputs = this.request.all();
     const allowFields = {
@@ -16,6 +23,9 @@ export default class FriendshipController extends BaseController {
     };
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
+    if (data.user_id == auth.id) {
+      throw new ApiException(1010, "Cannot send request to yourself")
+    }
 
     const result = await this.Friendship.sendRequest(auth.id, data.user_id)
     if (!result) throw new ApiException(1010, "Action has been done previously by this user")
@@ -61,20 +71,22 @@ export default class FriendshipController extends BaseController {
     };
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
+    if (data.user_id == auth.id) {
+      throw new ApiException(1010, "Cannot accept request of yourself")
+    }
 
     const friendship = await this.Friendship.getFriendship(data.user_id, auth.id)
-    if (!friendship || friendship.status != FriendshipModel.REQUEST) {
+    if (!friendship || friendship.status != FriendshipModel.Constant.STATUS_REQUEST) {
       throw new ApiException(1010, "This request is not exist")
     }
 
-    if (data.is_accept == FriendshipModel.ACCEPT_REQUEST) {
+    if (data.is_accept == FriendshipController.Constant.REQUEST_ACCEPT) {
       const acceptResult = await this.Friendship.acceptFriendRequest(data.user_id, auth.id)
       if (!acceptResult) {
         if (!acceptResult) throw new ApiException(1010, "Can't accept this request")
       }
 
       return {
-        code: 1000,
         message: "Accept request successfully"
       }
     }
@@ -85,8 +97,60 @@ export default class FriendshipController extends BaseController {
     }
 
     return {
-      code: 1000,
       message: "Reject request successfully"
     }
+  }
+
+  async setBlock() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      user_id: "number!",
+      type: "number!"
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    if (data.user_id == auth.id) {
+      throw new ApiException(1010, "Cannot block yourself")
+    }
+
+    if (data.type == FriendshipController.Constant.TYPE_BLOCK) {
+      const block = await this.Friendship.block(auth.id, data.user_id)
+      if (!block) {
+        throw new ApiException(1010, "Cannot block this user")
+      }
+      return {}
+    }
+    const unblock = await this.Friendship.unblock(auth.id, data.user_id)
+    if (!unblock) {
+      throw new ApiException(1010, "Cannot unblock this user")
+    }
+    return {
+      message: unblock ? "Unblock user successfully" : "Cannot unblock this user"
+    }
+  }
+
+  async getListBlocks() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      index: "number!",
+      count: "number!"
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    const blockedFriendship = await this.Friendship.getBlockedFriendship(auth.id)
+    const users = await this.UserModel.query()
+    const blockedUsers = blockedFriendship.map(friendship => {
+      const id = auth.id == friendship.user_two_id ? friendship.user_one_id : friendship.user_two_id
+      const user = users.filter(user => user.id == id)[0]
+      return {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar
+      }
+    })
+
+    this.response.success(blockedUsers)
   }
 }

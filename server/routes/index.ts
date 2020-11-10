@@ -33,6 +33,8 @@ Route.group(() => {
     Route.get("/get_requested_friends", "FriendshipController.getRequestedFriends").name(
       "getRequestedFriends"
     );
+    Route.post("/set_block", "FriendshipController.setBlock").name("setBlock");
+    Route.get("/get_list_blocks", "FriendshipController.getListBlocks").name("getListBlocks");
 
     // Post
     Route.post("/check_new_item", "PostController.checkNewItem").name("checkNewItem");
