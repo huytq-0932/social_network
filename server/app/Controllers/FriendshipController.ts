@@ -153,4 +153,30 @@ export default class FriendshipController extends BaseController {
 
     this.response.success(blockedUsers)
   }
+
+  async getUserFriends() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      index: "number!",
+      count: "number!"
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    const friendIds = await this.Friendship.getUserFriends(auth.id)
+    const users = await this.UserModel.query()
+    const userFriends = await Promise.all(friendIds.map(async friend => {
+      const id = auth.id == friend.user_two_id ? friend.user_one_id : friend.user_two_id
+      const user = users.filter(user => user.id == id)[0]
+      return {
+        user_id: user.id,
+        username: user.name,
+        avatar: user.avatar,
+        same_friends: await this.Friendship.getMultipleFriendsCount(auth.id, id)
+      }
+    }))
+    return {
+      list_friends: userFriends
+    }
+  }
 }
