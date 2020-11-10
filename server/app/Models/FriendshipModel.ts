@@ -7,6 +7,9 @@ class FriendshipModel extends BaseModel {
   static FRIEND = 2
   static BLOCK = 3
 
+  static ACCEPT_REQUEST = "1"
+  static REJECT_REQUEST = "0"
+
   //fields
   id: number;
   user_one_id: number;
@@ -30,7 +33,11 @@ class FriendshipModel extends BaseModel {
 
   static async removeFriendship(firstUserId, secondUserId) {
     const friendship = await this.getFriendship(firstUserId, secondUserId)
-    if (friendship) this.query().del()
+    if (friendship) {
+      this.query().del()
+      return true
+    }
+    return false
   }
 
   static async acceptFriendRequest(senderId, receiverId) {
