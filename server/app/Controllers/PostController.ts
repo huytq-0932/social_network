@@ -16,6 +16,66 @@ export default class PostController extends BaseController {
   PostImageModel = PostImages;
   PostVideoModel = PostVideos;
 
+  async getListVideos() {
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      user_id: "number",
+      // in_campaign: "string",
+      // campaign_id: "number",
+      // latitude: "string",
+      // longitude: "string",
+      last_id: "number",
+      index: "number",
+      count: "number"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true
+    });
+    let auth = this.request.auth;
+    let user = await this.UserModel.query().findById(auth.id);
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
+    }
+
+    let count = data.count || 20;
+    let index = data.index || 0;
+    let { videos, currentLastVideoId } = await this.getNLastVideo(data.last_id, index, count);
+    console.log(videos);
+    let postIds = videos.map((video) => video.post_id);
+    let posts = await this.PostModel.query().select().whereIn("id", postIds);
+    let postsUserIds = posts.map((post) => post.user_id);
+
+    const [postsAuthors, postsLikes, postsBlocked, postsImages, postsVideos] = await Promise.all([
+      this.getPostAuthor(postsUserIds),
+      this.getPostLikes(postIds),
+      this.getPostsBlocked(postIds, user.id),
+      this.getPostImages(postIds),
+      this.getPostVideos(postIds)
+    ]);
+    let postsInfo = posts.map((post) => {
+      let postLikes = postsLikes.filter((like) => like.post_id === post.id);
+      return {
+        ...post,
+        author: _.find(postsAuthors, { id: post.user_id }),
+        like: postLikes.length,
+        is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
+        is_blocked: postsBlocked.filter((block) => block.post_id === post.id).length > 0,
+        can_edit: post.user_id === user.id,
+        image: postsImages.filter((image) => image.post_id === post.id),
+        video: postsVideos.filter((video) => video.post_id === post.id)
+      };
+    });
+    return {
+      posts: postsInfo,
+      new_items:
+        !data.last_id || currentLastVideoId === data.last_id
+          ? 0
+          : videos.filter((video) => video.id > data.last_id).length,
+      last_id: currentLastVideoId
+    };
+  }
+
   async checkNewItem() {
     const inputs = this.request.all();
     const allowFields = {
@@ -123,6 +183,37 @@ export default class PostController extends BaseController {
   async getLastPostId() {
     let lastPost = await this.PostModel.query().select("id").orderBy("id", "desc").limit(1);
     return lastPost[0].id;
+  }
+
+  async getLastVideoId() {
+    let lastVideo = await this.PostVideoModel.query().select("id").orderBy("id", "desc").limit(1);
+    return lastVideo[0].id;
+  }
+
+  async getNLastVideo(lastId, index, count) {
+    let currentLastVideoId = await this.getLastVideoId();
+    if (!lastId || currentLastVideoId === lastId) {
+      let videos = await this.PostVideoModel.query()
+        .select()
+        .limit(count)
+        .offset(index)
+        .orderBy("post_videos.id", "DESC");
+      return { videos, currentLastVideoId };
+    } else {
+      let videos = await this.PostVideoModel.query()
+        .select()
+        .whereNotIn(
+          "id",
+          this.PostVideoModel.query()
+            .select("id")
+            .where("id", "<=", lastId)
+            .limit(index)
+            .orderBy("post_videos.id", "DESC")
+        )
+        .limit(count)
+        .orderBy("post_videos.id", "DESC");
+      return { videos, currentLastVideoId };
+    }
   }
 
   async editPost() {

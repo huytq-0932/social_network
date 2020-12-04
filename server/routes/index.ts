@@ -24,9 +24,7 @@ Route.group(() => {
     Route.post("/change_info_after_signup", "UserController.changeInfoAfterSignup").name(
       "changeInfoAfterSignup"
     );
-    Route.get("/get_user_friends", "FriendshipController.getUserFriends").name(
-      "getUserFriends"
-    );
+    Route.get("/get_user_friends", "FriendshipController.getUserFriends").name("getUserFriends");
     Route.post("/set_accept_friend", "FriendshipController.setAcceptFriend").name(
       "setAcceptFriend"
     );
@@ -42,6 +40,7 @@ Route.group(() => {
     // Post
     Route.post("/check_new_item", "PostController.checkNewItem").name("checkNewItem");
     Route.post("/get_list_posts", "PostController.getListPosts").name("getListPosts");
+    Route.post("/get_list_videos", "PostController.getListVideos").name("getListVideos");
     Route.get("/get_post", "PostController.getPostById").name("getPostById");
     Route.post("/add_post", "PostController.createPost").name("createPost");
     Route.delete("/delete_post", "PostController.deletePostById").name("deletePostById");
