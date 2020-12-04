@@ -41,7 +41,6 @@ export default class PostController extends BaseController {
     let count = data.count || 20;
     let index = data.index || 0;
     let { videos, currentLastVideoId } = await this.getNLastVideo(data.last_id, index, count);
-    console.log(videos);
     let postIds = videos.map((video) => video.post_id);
     let posts = await this.PostModel.query().select().whereIn("id", postIds);
     let postsUserIds = posts.map((post) => post.user_id);
