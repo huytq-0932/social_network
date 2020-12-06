@@ -2,6 +2,7 @@ import _ from "lodash";
 import BaseController from "./BaseController";
 import UserModel from "@root/server/app/Models/UserModel";
 import PostModel from "@root/server/app/Models/PostModel";
+import CommentModel from "@root/server/app/Models/CommentModel";
 import LikeModel from "@root/server/app/Models/LikeModel";
 import PostBlockedUsers from "@root/server/app/Models/PostBlockedUsers";
 import PostImages from "@root/server/app/Models/PostImages";
@@ -12,6 +13,7 @@ export default class PostController extends BaseController {
   UserModel = UserModel;
   PostModel = PostModel;
   LikeModel = LikeModel;
+  CommentModel = CommentModel;
   PostBlockedUserModel = PostBlockedUsers;
   PostImageModel = PostImages;
   PostVideoModel = PostVideos;
@@ -45,12 +47,20 @@ export default class PostController extends BaseController {
     let posts = await this.PostModel.query().select().whereIn("id", postIds);
     let postsUserIds = posts.map((post) => post.user_id);
 
-    const [postsAuthors, postsLikes, postsBlocked, postsImages, postsVideos] = await Promise.all([
+    const [
+      postsAuthors,
+      postsLikes,
+      postsBlocked,
+      postsImages,
+      postsVideos,
+      comments
+    ] = await Promise.all([
       this.getPostAuthor(postsUserIds),
       this.getPostLikes(postIds),
       this.getPostsBlocked(postIds, user.id),
       this.getPostImages(postIds),
-      this.getPostVideos(postIds)
+      this.getPostVideos(postIds),
+      this.getPostComments(postIds)
     ]);
     let postsInfo = posts.map((post) => {
       let postLikes = postsLikes.filter((like) => like.post_id === post.id);
@@ -62,7 +72,8 @@ export default class PostController extends BaseController {
         is_blocked: postsBlocked.filter((block) => block.post_id === post.id).length > 0,
         can_edit: post.user_id === user.id,
         image: postsImages.filter((image) => image.post_id === post.id),
-        video: postsVideos.filter((video) => video.post_id === post.id)
+        video: postsVideos.filter((video) => video.post_id === post.id),
+        comment: comments.length
       };
     });
     return {
@@ -123,12 +134,20 @@ export default class PostController extends BaseController {
     let postIds = posts.map((post) => post.id);
     let postsUserIds = posts.map((post) => post.user_id);
 
-    const [postsAuthors, postsLikes, postsBlocked, postsImages, postsVideos] = await Promise.all([
+    const [
+      postsAuthors,
+      postsLikes,
+      postsBlocked,
+      postsImages,
+      postsVideos,
+      postComments
+    ] = await Promise.all([
       this.getPostAuthor(postsUserIds),
       this.getPostLikes(postIds),
       this.getPostsBlocked(postIds, user.id),
       this.getPostImages(postIds),
-      this.getPostVideos(postIds)
+      this.getPostVideos(postIds),
+      this.getPostComments(postIds)
     ]);
     let postsInfo = posts.map((post) => {
       let postLikes = postsLikes.filter((like) => like.post_id === post.id);
@@ -140,7 +159,8 @@ export default class PostController extends BaseController {
         is_blocked: postsBlocked.filter((block) => block.post_id === post.id).length > 0,
         can_edit: post.user_id === user.id,
         image: postsImages.filter((image) => image.post_id === post.id),
-        video: postsVideos.filter((video) => video.post_id === post.id)
+        video: postsVideos.filter((video) => video.post_id === post.id),
+        comment: postComments.length
       };
     });
     return {
@@ -372,12 +392,20 @@ export default class PostController extends BaseController {
     let postInfo = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
 
-    const [postAuthor, postLikes, postBlocked, postImages, postVideos] = await Promise.all([
+    const [
+      postAuthor,
+      postLikes,
+      postBlocked,
+      postImages,
+      postVideos,
+      postComments
+    ] = await Promise.all([
       this.getPostAuthor([postInfo.user_id]),
       this.getPostLikes([data.id]),
       this.getPostsBlocked([data.id], user.id),
       this.getPostImages([data.id]),
-      this.getPostVideos([data.id])
+      this.getPostVideos([data.id]),
+      this.getPostComments([data.id])
     ]);
 
     this.response.success({
@@ -388,6 +416,7 @@ export default class PostController extends BaseController {
       is_blocked: postBlocked.length > 0,
       can_edit: postInfo.user_id === user.id,
       image: postImages,
+      comment: postComments.length,
       video: postVideos
     });
   }
@@ -402,6 +431,11 @@ export default class PostController extends BaseController {
   async getPostLikes(postIds: number[]) {
     let postLikes = await this.LikeModel.query().select().whereIn("post_id", postIds);
     return postLikes;
+  }
+
+  async getPostComments(postIds: number[]) {
+    let postComments = await this.CommentModel.query().select().whereIn("post_id", postIds);
+    return postComments;
   }
 
   // Người tạo post có block mình không
