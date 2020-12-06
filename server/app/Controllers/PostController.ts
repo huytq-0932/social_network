@@ -304,7 +304,7 @@ export default class PostController extends BaseController {
 
     await this.PostModel.query().delete().where("id", "=", postInfo.id);
 
-    return "VietAnhdeptrai";
+    return { message: "Delete post successfully" };
   }
 
   async createPost() {
