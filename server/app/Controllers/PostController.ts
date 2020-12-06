@@ -312,7 +312,7 @@ export default class PostController extends BaseController {
     });
     const { files } = this.request;
     this.writeAndInsertFile(files, post.id, data.image_sort);
-    return "VietAnhdeptrai";
+    return { postId: post.id };
   }
 
   async writeAndInsertFile(files, postId, imageSort) {
@@ -337,9 +337,7 @@ export default class PostController extends BaseController {
 
         // INSERT POST_IMAGES
         await this.PostImageModel.query().insert(insertPostImages);
-      }
-
-      if (files.video) {
+      } else if (files.video) {
         let videoName = this.insertVideo(files.video);
         let thumbName = files.thumb ? this.insertImage(files.thumb) : "";
 
