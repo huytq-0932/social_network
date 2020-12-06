@@ -29,6 +29,6 @@ export default class ReportPostController extends BaseController {
       subject,
       detail: details
     });
-    return "VietAnhdeptrai";
+    return "Report successfully";
   }
 }
