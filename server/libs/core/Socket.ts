@@ -26,10 +26,11 @@ class Socket {
       let token = socket.handshake.query.token;
       socket.on("join", async ({ fromId, toId }, callback) => {
         let [error, user] = await to(Auth.verify(token));
-        if (!user) return callback("Không tồn tại người dùng trong hệ thống!");
+        if (!user) return callback("Token lỗi!");
         // socket.userId = user.id;
-        let groupId =
-        fromId > toId ? `${toId}-${fromId}` : `${fromId}-${toId}`;
+        let groupId = fromId > toId ? `${toId}-${fromId}` : `${fromId}-${toId}`;
+        console.log("groupId ", groupId)
+
         socket.join(groupId);
         // io.of("/")
         //   .in(id)
@@ -58,6 +59,7 @@ class Socket {
           if (!user) return false;
           let groupId =
             fromId > toId ? `${toId}-${fromId}` : `${fromId}-${toId}`;
+            
           io.to(groupId).emit("message", {
             fromId: fromId,
             content: message,

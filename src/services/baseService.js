@@ -57,11 +57,15 @@ class BaseService {
             ...options
         };
 
+      
+        
+        let API_HOST = publicRuntimeConfig.API_HOST || "";
+        let fullUrl = API_HOST + url;
         if (this.auth && this.auth.token) {
-            requestOptions.headers['Authorization'] = `Bearer ${this.auth.token}`;
+            fullUrl = fullUrl + "?token=" + this.auth.token;
         }
-        let API_HOST = publicRuntimeConfig.API_HOST || ""
-        const result = await fetch(API_HOST + url, requestOptions)
+        
+        const result = await fetch(fullUrl, requestOptions)
         return await this.handleResponse(result)
     }
 
@@ -81,7 +85,7 @@ class BaseService {
             if ([401].indexOf(response.status) !== -1 && !url.includes("/login")) {
                 // auto logout if 401 Unauthorized or 403 Forbidden response returned from api
                 auth().logout();
-                window.location.href = "/login"
+                window.location.href = "/"
             }
             const error = data || (data && data.message) || response.statusText;
             return Promise.reject(error);

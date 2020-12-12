@@ -9,7 +9,9 @@ Route.group(() => {
   Route.get("/all_users", "UserController.getAllUsers").name("getAllUsers");
 
   Route.group(() => {
+    
     Route.resource("/users", "UserController").name("users");
+    Route.post("/users/getByPhone", "UserController.getByPhone").name("getByPhone");
     Route.post("/change_password", "UserController.updatePassword").name("updatePassword");
     Route.get("/get_user_info", "UserController.getInfo").name("getInfo");
     Route.post("/set_user_info", "UserController.setUserInfo").name("setUserInfo");

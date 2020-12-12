@@ -11,8 +11,26 @@ const random = require("random");
 
 export default class UserController extends BaseController {
   Model = Model;
-  async test() {
-    let existUsername = await this.Model.query().findById(67)
+  
+  async getByPhone(){
+    const inputs = this.request.all();
+    const allowFields = {
+      phonenumber: "string!"
+    };
+    const data = this.validate(inputs, allowFields);
+    var phonePattern = new RegExp(/^0[0-9]{9}$/);
+    if (!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(
+        1004,
+        "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
+      );
+    };
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    if (!exist) {
+      throw new ApiException(9996, "User not Exist");
+    };
+    delete exist.password;
+    return exist;
   }
   async signup() {
     const inputs = this.request.all();
@@ -23,7 +41,6 @@ export default class UserController extends BaseController {
       uuid: "string!",
     };
     const data = this.validate(inputs, allowFields);
-    console.log("this.request.auth ", this.request.auth);
     var phonePattern = new RegExp(/^0[0-9]{9}$/);
     if (!phonePattern.test(data.phonenumber)) {
       throw new ApiException(

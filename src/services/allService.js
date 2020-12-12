@@ -7,6 +7,13 @@ class Service extends Base {
       data: {phonenumber, password}
     });
   };
+  getByPhone = async (phonenumber) => {
+    return this.request({
+      url: "/it4788/users/getByPhone",
+      method: "POST",
+      data: {phonenumber}
+    });
+  }
 
 }
 

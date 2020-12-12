@@ -31,17 +31,6 @@ const Home = () => {
     <div className="home--container">
       <h1>Demo chat!</h1>
       <div className="allow-chat">
-        <form className="send-chat" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="message"
-            id="message"
-            value={message}
-            onChange={handleChange}
-            placeholder="Leave a message..."
-          />
-        </form>
-
         <Chatbox />
       </div>
     </div>

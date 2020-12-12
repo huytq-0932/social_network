@@ -10,8 +10,6 @@ class AuthApiMiddleware extends BaseMiddleware {
     UserModel = UserModel
     constructor(request, response, next) {
         super(request, response, next);
-        let token = this.getBearerTokenFromHeader(request)
-        this.cookies = new Cookies(token);
         this.checkToken().then(res => {
             if (res.error) return response.status(401).json({ error: res.error })
             next();
@@ -19,24 +17,6 @@ class AuthApiMiddleware extends BaseMiddleware {
             console.log(err)
             return response.status(401).json({ error: err })
         })
-    }
-
-    getBearerTokenFromHeader(req) {
-        if (!req.headers.authorization) {
-            return { error: 'Missing access token' };
-        }
-        const BEARER = 'Bearer';
-        let token = req.headers.authorization.trim();
-        if (!token || token.length == 0) {
-            return { error: 'Missing access token' };
-        }
-        let index = token.indexOf(BEARER);
-        if (index == 0) {
-            token = token.substring(BEARER.length, token.length);
-        } else {
-            return { error: 'Missing token type ' + BEARER };
-        }
-        return { token: token.trim() };
     }
 
     async checkToken() {
@@ -55,7 +35,7 @@ class AuthApiMiddleware extends BaseMiddleware {
             return { error: "tài khoản đã bị khóa", code: 9998 };
         }
         
-        console.log("auth ", auth);
+
         this.request.auth = auth;
         return { token };
     }
