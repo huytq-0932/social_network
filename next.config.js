@@ -1,13 +1,12 @@
 //const withProgressBar = require('next-progressbar')
 //const WebpackBar = require('webpackbar');
 //const env = require('dotenv').config().parsed;
-//const withCSS = require('@zeit/next-css')
-//const withSourceMaps = require('@zeit/next-source-maps');
+const withCSS = require('@zeit/next-css')
+// const withSourceMaps = require('@zeit/next-source-maps');
 const withLess = require('@zeit/next-less');
 const withPlugins = require('next-compose-plugins');
 
 const publicRuntimeConfig = require('./config/publicRuntime')
-//const serverRuntimeConfig = require('./config/serverRuntime')
 const inDevelopment = process.env.NODE_ENV === "development"
 
 
@@ -19,23 +18,6 @@ const NextAppConfig = {
   target: 'server',
   pageExtensions: ['tsx'],
   webpack: (config, options) => {
-    /* if (options.dev) {
-      config.devtool = 'cheap-module-source-map';
-    }
-    
-    for (const plugin of config.plugins) {
-      if (plugin.constructor.name === 'AutoDLLPlugin') {
-        plugin._originalSettings.entry.dll = [
-          ...plugin._originalSettings.entry.dll,
-          'lodash',
-          'moment',
-          //'axios',
-          //'core-js',
-          'antd',
-          '@ant-design/icons'
-        ]
-      }
-    } */
     config.resolve.alias = {
       ...config.resolve.alias,
       '@src': `${__dirname}/src`,
@@ -85,7 +67,6 @@ const NextAppConfig = {
   },
   compress: !inDevelopment,
   publicRuntimeConfig: publicRuntimeConfig,
-  //serverRuntimeConfig: serverRuntimeConfig
 };
 
 module.exports = withPlugins([
@@ -96,7 +77,11 @@ module.exports = withPlugins([
       javascriptEnabled: true
     }
   }],
-//  [withCSS],
+ [withCSS, {
+  cssLoaderOptions: {
+    url: false,
+  },
+}],
   //[withProgressBar],
 ], NextAppConfig);
 
