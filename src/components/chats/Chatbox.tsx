@@ -57,7 +57,7 @@ const Chatbox = () => {
       alert(error.message);
       return;
     }
-    form.setFieldValues({message: ""})
+    form.setFieldsValue({message: ""})
     socket.emit(
       "sendMessage",
       {
