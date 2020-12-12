@@ -16,8 +16,9 @@ const Chatbox = () => {
 		// @ts-ignore
 		socket = io(`${ENDPOINT}?token=${auth().token}`);
 		socket.emit("join", { id: "1" }, (error: Error) => {
+			console.log("")
 		  if (error) {
-			alert(error);
+			// alert(error);
 		  }
 		});
 		socket
@@ -39,6 +40,7 @@ const Chatbox = () => {
 		  });
 	  };
 	useEffect(() => {
+		console.log(location.search);
 		initSocket();
 	  }, []);
 	useEffect(() => {

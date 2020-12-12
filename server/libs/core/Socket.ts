@@ -1,16 +1,15 @@
 import Auth from "@libs/Auth";
 import to from "await-to-js";
-import ChatModel from "@root/server/app/Models/ChatModel";
-import UserModel from "@root/server/app/Models/UserModel";
-
 let user = null;
 class Socket {
-  ChatModel = ChatModel;
-  UserModel = UserModel;
-  static connect(server) {
-    const io = require("socket.io")(server,  {cors: {
-        origin: "*"
-      }});
+  //   ChatModel = ChatModel;
+  // UserModel = UserModel;
+  static connect = async (server) => {
+    const io = require("socket.io")(server, {
+      cors: {
+        origin: "*",
+      },
+    });
     console.log("socket.io was connected!");
     // middleware
     io.use(async (socket, next) => {
@@ -25,42 +24,44 @@ class Socket {
 
     io.on("connect", (socket) => {
       let token = socket.handshake.query.token;
-      console.log("token ", token);
-      socket.on("join", async ({ id }, callback) => {
-        console.log("token ", token);
+      socket.on("join", async ({ fromId, toId }, callback) => {
         let [error, user] = await to(Auth.verify(token));
         if (!user) return callback("Không tồn tại người dùng trong hệ thống!");
-        socket.userId = user.id;
-
-        socket.join(id);
-        io.of("/")
-          .in(id)
-          .clients(function (error, clients) {
-            let active = clients
-              .map((clientId) => {
-                return io.sockets.connected[clientId].userId;
-              })
-              .filter((userId) => userId);
-            io.to(id).emit("active", active);
-          });
+        // socket.userId = user.id;
+        let groupId =
+        fromId > toId ? `${toId}-${fromId}` : `${fromId}-${toId}`;
+        socket.join(groupId);
+        // io.of("/")
+        //   .in(id)
+        //   .clients(function (error, clients) {
+        //     let active = clients
+        //       .map((clientId) => {
+        //         return io.sockets.connected[clientId].userId;
+        //       })
+        //       .filter((userId) => userId);
+        //     io.to(id).emit("active", active);
+        //   });
         callback();
       });
 
       socket.on(
         "sendMessage",
-        async ({ message, id }: { message: string; id: number }, callback) => {
+        async (
+          {
+            message,
+            fromId,
+            toId,
+          }: { message: string; fromId: number; toId: number },
+          callback
+        ) => {
           let [error, user] = await to(Auth.verify(token));
           if (!user) return false;
-          let loginUser = await UserModel.query().findById(user.id);
-          await ChatModel.query().insert({
-            send_id: user.id,
+          let groupId =
+            fromId > toId ? `${toId}-${fromId}` : `${fromId}-${toId}`;
+          io.to(groupId).emit("message", {
+            fromId: fromId,
             content: message,
-          });
-
-          io.to(id).emit("message", {
-            userId: loginUser.id,
-            content: message,
-            user_name: loginUser.name,
+            toId: toId,
             createdAt: new Date(),
           });
 
@@ -68,9 +69,9 @@ class Socket {
         }
       );
 
-      socket.on("disconnect", async () => {});
+      //   socket.on("disconnect", async () => {});
     });
-  }
+  };
 }
 
 export default Socket;

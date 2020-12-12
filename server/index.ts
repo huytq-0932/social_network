@@ -8,10 +8,7 @@ import Socket from '@core/Socket'
 (async () => {
   try {
     let server = new Server();
-   server.start().then((server) => {
-      //server stated
-      // Socket.connect(server)
-    });
+    await server.start()
     
   } catch (e) {
     console.error(e);

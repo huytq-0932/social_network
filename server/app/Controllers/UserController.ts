@@ -11,7 +11,9 @@ const random = require("random");
 
 export default class UserController extends BaseController {
   Model = Model;
-
+  async test() {
+    let existUsername = await this.Model.query().findById(67)
+  }
   async signup() {
     const inputs = this.request.all();
     const allowFields = {

@@ -18,11 +18,11 @@ const auth = (): Auth => {
       //maxAge: 86400 * 365
       expires: moment().add(1, "years").toDate(),
     };
-    cookies.set("api-token", token, options);
+    cookies.set("token", token, options);
     cookies.set("user", user, options);
   };
   const logout = () => {
-    cookies.remove("api-token", {
+    cookies.remove("token", {
       path: "/",
     });
     cookies.remove("user", {

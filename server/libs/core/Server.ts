@@ -4,7 +4,7 @@ import express, { Response } from "express";
 import Router from "./Routes";
 import Database from "@core/Databases";
 import fileUpload from "express-fileupload";
-import Socket from '@core/Socket'
+import Socket from "@core/Socket";
 let bodyParser = require("body-parser");
 const cors = require("cors");
 const nextI18NextMiddleware = require("next-i18next/middleware").default;
@@ -24,7 +24,7 @@ class Server {
   constructor({
     host,
     port,
-    options = {}
+    options = {},
   }: { host?: string; port?: string | number; options?: any } = {}) {
     const defaultPORT =
       process.env.MODE == "dev-client"
@@ -41,7 +41,7 @@ class Server {
   }
 
   async nextStart() {
-    console.log("process.env.MODE ", process.env.MODE)
+    console.log("process.env.MODE ", process.env.MODE);
     if (process.env.MODE !== "dev-server") {
       await nextApp.prepare();
       Server.nextApp = nextApp;
@@ -61,18 +61,18 @@ class Server {
     this.express.use(nextI18NextMiddleware(nextI18next));
     this.express.use(
       fileUpload({
-        tempFileDir: "/tmp/"
+        tempFileDir: "/tmp/",
       })
     );
     this.express.use(bodyParser.urlencoded({ extended: true }));
     this.express.use(
       bodyParser.json({
-        limit: "50mb"
+        limit: "50mb",
       })
     );
     this.express.use(
       cors({
-        origin: "*" 
+        origin: dev ? "*" : process.env.CORS_ORIGIN,
       })
     );
 
@@ -83,20 +83,20 @@ class Server {
 
       return handle(req, res);
     });
-    
-    await new Promise((r) =>
-     {
-      let server = this.express.listen(this.port, this.host, () => {
+
+    // server.listen(3000);
+    await new Promise((r) => {
+       let server = this.express.listen(this.port, this.host, () => {
         console.log(`server stated: ${this.host}:${this.port}`);
         // @ts-ignore
         r();
-      })
-      Socket.connect(server);
-     }
-    );
+        
+        Socket.connect(server);
+      });
+    });
     return {
       express: this.express,
-      next: Server.nextApp
+      next: Server.nextApp,
     };
   }
 }
