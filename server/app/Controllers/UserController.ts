@@ -20,10 +20,21 @@ export default class UserController extends BaseController {
       uuid: "string!"
     };
     const data = this.validate(inputs, allowFields);
+    var phonePattern = new RegExp(/^0[0-9]{9}$/);
+    if(!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+    }
+    if(data.password.length >10 || data.password.length < 6) {
+      throw new ApiException(1004, "Mật khẩu phải có 6 đến 10 kỹ tự!");
+    }
+    if(data.password === data.phonenumber) {
+      throw new ApiException(1004, "Mật khẩu không được trùng với số diện thoại!");
+    }
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
+    
     const password = await this.Model.hash(data.password);
 
     let result = await this.Model.query().insert({
@@ -113,9 +124,14 @@ export default class UserController extends BaseController {
       phonenumber: "string!",
       code_verify: "string!"
     };
+    
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
+    var phonePattern = new RegExp(/^0[0-9]{9}$/);
+    if(!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+    }
     let exist = await this.Model.query().findOne({
       phone: data.phonenumber,
       code_verify: data.code_verify
@@ -123,7 +139,7 @@ export default class UserController extends BaseController {
     if (!exist) {
       throw new ApiException(9995, "User is not validated");
     }
-
+   await this.Model.query().patchAndFetchById(exist.id, {is_verify: 1});
     let token = Auth.generateJWT(
       {
         id: exist.id,
@@ -142,18 +158,31 @@ export default class UserController extends BaseController {
 
   async getVerifyCode() {
     let inputs = this.request.all();
-
     const allowFields = {
       phonenumber: "string!"
     };
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
+    var phonePattern = new RegExp(/^0[0-9]{9}$/);
+    if(!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+    }
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
-      throw new ApiException(9995, "User is not validated");
+      throw new ApiException(1004, "Số điện thoại chưa được đăng ký!");
     }
-
+    // call 120s liên tục thì không chấp nhận
+    let validTime = moment().subtract(120, "seconds");
+    if(exist.last_verify_at) { 
+      if(validTime > moment(exist.last_verify_at)){
+        throw new ApiException(1010, "Hành động này đã được thực hiện trước đây!");
+      }
+    }
+    // nấu tồn tại code trước đó thì trả về luôn
+    if(exist.code_verify) {
+      return exist.code_verify;
+    }
     let randomCode = random.int(100000, 999999);
     while (true) {
       let existCode = await this.Model.query().findOne({
