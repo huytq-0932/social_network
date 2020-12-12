@@ -1,11 +1,7 @@
 import { Divider } from "antd";
-
+import ChatHome from "@src/components/chats/Home";
 function IndexPage() {
-  return (
-    <div>
-      test
-    </div>
-  );
+  return <ChatHome />;
 }
 
 export default IndexPage;

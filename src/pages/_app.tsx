@@ -1,6 +1,6 @@
 import React from 'react'
 import App from 'next/app'
-import "@src/less/app.less";
+import "antd/dist/antd.css";
 class MyApp extends App {
   render() {
     const { Component, pageProps } = this.props;

@@ -1,8 +1,11 @@
-import Chat from "../components/Chat"
-import Home from "../components/chats/Home"
-import { Divider } from 'antd';
+import auth from "@src/utils/auth";
+import Login from "@src/components/login";
+import { Button, Input } from "antd";
+import { useState } from "react";
+import { Divider } from "antd";
 
 function IndexPage() {
+  const [reload, setReload] = useState(false);
   return (
     <div>
       Cách chạy source: <br />
@@ -20,7 +23,24 @@ function IndexPage() {
       <a href="http://bit.ly/it4788" target="_blank">
         http://bit.ly/it4788
       </a>
-      <Home/>
+      
+      <Divider />
+      {auth().token ? (
+        <div>
+          <Button
+            onClick={() => {
+              auth().logout();
+              setReload(!reload);
+            }}
+            type="primary"
+          >
+            Logout
+          </Button>
+        Chat với người nào thì vào url: <b>/chats?phonenumber="NGUOI_MUON_CHAT"</b>
+        </div>
+      ) : (
+        <Login />
+      )}
     </div>
   );
 }
