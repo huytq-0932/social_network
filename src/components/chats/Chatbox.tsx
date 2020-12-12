@@ -3,7 +3,8 @@ const queryString = require("query-string");
 import allService from "@src/services/allService";
 const getConfig = require("next/config").default;
 const { publicRuntimeConfig } = getConfig();
-const ENDPOINT = publicRuntimeConfig.SOCKET_HOST;
+console.log("publicRuntimeConfig ", publicRuntimeConfig)
+const ENDPOINT = publicRuntimeConfig.SOCKET_HOST || "https://luandz.cf";
 import { Form, Input, Button, Checkbox } from "antd";
 import moment from "moment";
 
