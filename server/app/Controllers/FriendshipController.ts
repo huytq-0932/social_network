@@ -1,7 +1,6 @@
 import BaseController from "./BaseController";
 import UserModel from "@root/server/app/Models/UserModel";
 import ApiException from "@app/Exceptions/ApiException";
-import FriendRequestModel from "@root/server/app/Models/FriendRequestModel";
 import FriendshipModel from "@app/Models/FriendshipModel";
 
 export default class FriendshipController extends BaseController {
@@ -179,4 +178,6 @@ export default class FriendshipController extends BaseController {
       list_friends: userFriends
     }
   }
+
+
 }
