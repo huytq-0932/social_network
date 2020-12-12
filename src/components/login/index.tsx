@@ -17,6 +17,7 @@ const Demo = () => {
         alert("Đăng nhập lỗi!");
         return;
     }
+    // console.log
     let token = user.token;
     auth().setAuth({user, token});
     location.reload();

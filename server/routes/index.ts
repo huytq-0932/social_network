@@ -12,6 +12,12 @@ Route.group(() => {
   Route.group(() => {
     
     Route.resource("/users", "UserController").name("users");
+    
+    Route.post("/get_list_conversation", "GroupChatController.getListConversation").name("getListConversation");
+    Route.post("/get_conversation", "GroupChatController.getConversation").name("getConversation");
+    Route.post("/set_read_message", "GroupChatController.setReadMessage").name("setReadMessage");
+    Route.post("/send_message", "GroupChatController.sendMessage").name("sendMessage");
+    
     Route.post("/users/getByPhone", "UserController.getByPhone").name("getByPhone");
     Route.post("/change_password", "UserController.updatePassword").name("updatePassword");
     Route.post("/get_user_info", "UserController.getInfo").name("getInfo");

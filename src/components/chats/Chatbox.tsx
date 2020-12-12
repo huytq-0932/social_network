@@ -14,8 +14,11 @@ import _ from "lodash";
 let socket: any;
 let toUser = { id: "" };
 const Chatbox = () => {
-  const [chats, setChats] = useState([]);
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false)
+  const [disabled, setDisabled] = useState(false);
   const fromId = _.get(auth(), "user.id");
+  
   const [messages, setMessages] = useState([]);
   const initSocket = () => {
     // @ts-ignore
@@ -36,19 +39,33 @@ const Chatbox = () => {
       })
       .on("message", (message: any) => {
         if (!message) return;
-        setMessages((messages: any) => [
-          ...messages,
-            message
-        ]);
+        setMessages((messages: any) => [...messages, message]);
       });
   };
 
-  const onSendMessage = (values) => {
-    event.preventDefault();
+  const onSendMessage = async (values) => {
+    setLoading(true)
     // setSentLoading(true);
+    let [error, result] = await to(
+      allService().withAuth().sendMessage({
+        partner_id: toUser.id,
+        message: values.message,
+      })
+    );
+    setLoading(false)
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    form.setFieldValues({message: ""})
     socket.emit(
       "sendMessage",
-      { message: values.message, fromId: fromId, toId: toUser.id },
+      {
+        message: values.message,
+        fromId: fromId,
+        toId: toUser.id,
+        sender: auth().user,
+      },
       () => {
         // setMessage("");
         // setSentLoading(false);
@@ -58,8 +75,8 @@ const Chatbox = () => {
 
   useEffect(() => {
     const parsed = queryString.parse(location.search);
-	let phonenumber = parsed.phonenumber;
-	console.log("auth ", auth().user)
+    let phonenumber = parsed.phonenumber;
+
     async function fetch() {
       let [error, _toUser = {}] = await to(
         allService().withAuth().getByPhone(phonenumber)
@@ -69,6 +86,20 @@ const Chatbox = () => {
         return;
       }
       toUser = _toUser;
+      let [messageErr, _messages = {}] = await to(
+        allService().withAuth().getConversation({
+          index: 0,
+          count: 100,
+          partner_id: _toUser.id,
+        })
+      );
+      if (messageErr) {
+        alert(messageErr.message);
+        return;
+      }
+      setMessages(_messages.conversations || []);
+      console.log("_messages.conversations ", _messages.conversations);
+      setDisabled(_messages.is_blocked);
       initSocket();
     }
     fetch();
@@ -100,6 +131,7 @@ const Chatbox = () => {
         // layout="inline"
         initialValues={{ remember: true }}
         onFinish={onSendMessage}
+        form={form}
       >
         <Form.Item
           name="message"
@@ -108,20 +140,20 @@ const Chatbox = () => {
           <Input placeholder="Nhập tin nhắn" />
         </Form.Item>
         <Form.Item>
-          <Button htmlType="submit" type="primary">
+          <Button loading = {loading} disabled={disabled} htmlType="submit" type="primary">
             Gửi
           </Button>
         </Form.Item>
       </Form>
       <div className="chatbox">
         <ul className="chat-list">
-          {messages.map((chat) => {
-            const postDate = new Date(chat.createdAt);
+          {messages.map((chat, index) => {
+            const postDate = moment(chat.createdAt);
             return (
-              <li key={chat.id}>
-                <em>{postDate.getDate() + "/" + (postDate.getMonth() + 1)}</em>
-                <strong>{chat.fromid} đến {chat.toId}:</strong>
-                {chat.content}
+              <li key={index}>
+                <em>{postDate.format("HH:mm DD/MM/YYYY")}</em>
+                <strong>{_.get(chat, "sender.username", "unknown")}:</strong>
+                {chat.message}
               </li>
             );
           })}

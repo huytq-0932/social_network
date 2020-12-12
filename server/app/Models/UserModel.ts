@@ -9,6 +9,7 @@ class UserModel extends BaseModel {
   //fields
   id: number;
   name: string;
+  username: string;
   password: string;
   avatar: string;
   phone: string;

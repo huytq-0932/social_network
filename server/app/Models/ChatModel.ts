@@ -6,9 +6,11 @@ class LikeModel extends BaseModel {
   //fields
   id: number;
   send_id: number;
+  group_id: number;
   receive_id: number;
   content: string;
   createdAt: Date;
+  readed_user_ids: any
 }
 
 export default LikeModel;

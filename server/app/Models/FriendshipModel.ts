@@ -124,6 +124,12 @@ class FriendshipModel extends BaseModel {
     return this.query().where({action_user_id: userId, status: FriendshipModel.Constant.STATUS_BLOCK})
   }
 
+  static async isBlockedTogether(user_one_id, user_two_id){
+    let list = await this.query().where({user_one_id,user_two_id, status: FriendshipModel.Constant.STATUS_BLOCK})
+    .orWhere({user_one_id: user_two_id,user_two_id: user_one_id, status: FriendshipModel.Constant.STATUS_BLOCK});
+    return Boolean(list.length);
+  }
+
   static async isFriend(firstUserId, secondUserId) {
     const friendship = await this.getFriendship(firstUserId, secondUserId)
     return friendship && friendship.status == FriendshipModel.Constant.STATUS_FRIEND

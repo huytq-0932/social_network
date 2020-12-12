@@ -52,7 +52,8 @@ class Socket {
             message,
             fromId,
             toId,
-          }: { message: string; fromId: number; toId: number },
+            sender
+          }: { message: string; fromId: number; toId: number; sender:any },
           callback
         ) => {
           let [error, user] = await to(Auth.verify(token));
@@ -62,7 +63,8 @@ class Socket {
             
           io.to(groupId).emit("message", {
             fromId: fromId,
-            content: message,
+            message: message,
+            sender: sender,
             toId: toId,
             createdAt: new Date(),
           });

@@ -92,6 +92,8 @@ export default class UserController extends BaseController {
       {
         id: user.id,
         phonenumber: user.phone,
+        username: user.username,
+        avatar:user.avatar
       },
       {
         key: authConfig["SECRET_KEY"],
@@ -102,6 +104,7 @@ export default class UserController extends BaseController {
     this.response.success({
       id: user.id,
       username: user.name,
+      phonenumber: user.phone,
       token,
       avatar: user.avatar,
       active: !user.avatar && !user.name ? -1 : 1,
