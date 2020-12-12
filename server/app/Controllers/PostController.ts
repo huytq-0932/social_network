@@ -301,6 +301,7 @@ export default class PostController extends BaseController {
 
     let postInfo = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
+    if (postInfo.user_id !== user.id) throw new ApiException(1009, "Not access.");
 
     await this.PostModel.query().delete().where("id", "=", postInfo.id);
 
