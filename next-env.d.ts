@@ -4,9 +4,7 @@ declare module 'enquire-js' {
     function enquireScreen(params?: any): any
     function unenquireScreen(params?: any): any
 }
-declare module '@ngochipx/nhfinder/reactjs' {
-    function NHFinder(props?: any): any
-}
+
 declare module "js-base64";
 declare module "node-fetch";
 declare module "@ant-design/icons";

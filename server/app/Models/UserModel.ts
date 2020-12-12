@@ -14,7 +14,8 @@ class UserModel extends BaseModel {
   phone: string;
   code_verify: string;
   is_verify: number;
-  last_verify_at: date;
+  last_verify_at: Date;
+  activeStatus: number;
 
   static async checkLogin({ phonenumber, password }) {
     const user = await this.query().findOne({ phone: phonenumber });

@@ -5,6 +5,7 @@ import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
 import _ from "lodash";
+var stringSimilarity = require("string-similarity");
 
 const random = require("random");
 
@@ -17,30 +18,37 @@ export default class UserController extends BaseController {
       name: "string",
       phonenumber: "string!",
       password: "string!",
-      uuid: "string!"
+      uuid: "string!",
     };
     const data = this.validate(inputs, allowFields);
+    console.log("this.request.auth ", this.request.auth);
     var phonePattern = new RegExp(/^0[0-9]{9}$/);
-    if(!phonePattern.test(data.phonenumber)) {
-      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+    if (!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(
+        1004,
+        "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
+      );
     }
-    if(data.password.length >10 || data.password.length < 6) {
+    if (data.password.length > 10 || data.password.length < 6) {
       throw new ApiException(1004, "Mật khẩu phải có 6 đến 10 kỹ tự!");
     }
-    if(data.password === data.phonenumber) {
-      throw new ApiException(1004, "Mật khẩu không được trùng với số diện thoại!");
+    if (data.password === data.phonenumber) {
+      throw new ApiException(
+        1004,
+        "Mật khẩu không được trùng với số diện thoại!"
+      );
     }
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
-    
+
     const password = await this.Model.hash(data.password);
 
     let result = await this.Model.query().insert({
       phone: data.phonenumber,
       password: password,
-      name: data.name || "new member"
+      name: data.name || "new member",
     });
     delete result.password;
     return result;
@@ -50,13 +58,13 @@ export default class UserController extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       phonenumber: "string!",
-      password: "string!"
+      password: "string!",
     };
 
     const data = this.validate(inputs, allowFields);
     let user = await this.Model.checkLogin({
       phonenumber: data.phonenumber,
-      password: data.password
+      password: data.password,
     });
     if (!user) {
       throw new ApiException(7000, "Can not login");
@@ -64,11 +72,11 @@ export default class UserController extends BaseController {
     let token = Auth.generateJWT(
       {
         id: user.id,
-        phonenumber: user.phone
+        phonenumber: user.phone,
       },
       {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"]
+        expiresIn: authConfig["JWT_EXPIRE"],
       }
     );
 
@@ -77,7 +85,7 @@ export default class UserController extends BaseController {
       username: user.name,
       token,
       avatar: user.avatar,
-      active: !user.avatar && !user.name ? -1 : 1
+      active: !user.avatar && !user.name ? -1 : 1,
     });
   }
 
@@ -85,10 +93,10 @@ export default class UserController extends BaseController {
     let inputs = this.request.all();
 
     const allowFields = {
-      username: "string!"
+      username: "string!",
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true
+      removeNotAllow: true,
     });
     let auth = this.request.auth;
     let existUsername = await this.Model.query()
@@ -104,7 +112,7 @@ export default class UserController extends BaseController {
     if (files) {
       avatarName = this.insertImage(files.avatar);
       await this.Model.query().patchAndFetchById(auth.id, {
-        avatar: `/static/data/images/${avatarName}`
+        avatar: `/static/data/images/${avatarName}`,
       });
     }
 
@@ -113,7 +121,7 @@ export default class UserController extends BaseController {
       username: data.username,
       avatar: `/static/data/images/${avatarName}`,
       created: moment().valueOf(),
-      phonenumber: auth.phonenumber
+      phonenumber: auth.phonenumber,
     };
   }
 
@@ -122,51 +130,58 @@ export default class UserController extends BaseController {
 
     const allowFields = {
       phonenumber: "string!",
-      code_verify: "string!"
+      code_verify: "string!",
     };
-    
+
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true
+      removeNotAllow: true,
     });
     var phonePattern = new RegExp(/^0[0-9]{9}$/);
-    if(!phonePattern.test(data.phonenumber)) {
-      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+    if (!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(
+        1004,
+        "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
+      );
     }
     let exist = await this.Model.query().findOne({
       phone: data.phonenumber,
-      code_verify: data.code_verify
+      code_verify: data.code_verify,
     });
     if (!exist) {
       throw new ApiException(9995, "User is not validated");
     }
-   await this.Model.query().patchAndFetchById(exist.id, {is_verify: 1});
+    await this.Model.query().patchAndFetchById(exist.id, { is_verify: 1 });
     let token = Auth.generateJWT(
       {
         id: exist.id,
-        phonenumber: exist.phone
+        phonenumber: exist.phone,
       },
       {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"]
+        expiresIn: authConfig["JWT_EXPIRE"],
       }
     );
     return {
       token,
-      id: exist.id
+      id: exist.id,
     };
   }
 
   async getVerifyCode() {
     let inputs = this.request.all();
     const allowFields = {
-      phonenumber: "string!"
+      phonenumber: "string!",
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true
+      removeNotAllow: true,
     });
     var phonePattern = new RegExp(/^0[0-9]{9}$/);
-    if(!phonePattern.test(data.phonenumber)) {
-      throw new ApiException(1004, "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!");
+
+    if (!phonePattern.test(data.phonenumber)) {
+      throw new ApiException(
+        1004,
+        "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
+      );
     }
     let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
@@ -174,23 +189,26 @@ export default class UserController extends BaseController {
     }
     // call 120s liên tục thì không chấp nhận
     let validTime = moment().subtract(120, "seconds");
-    if(exist.last_verify_at) { 
-      if(validTime > moment(exist.last_verify_at)){
-        throw new ApiException(1010, "Hành động này đã được thực hiện trước đây!");
+    if (exist.last_verify_at) {
+      if (validTime > moment(exist.last_verify_at)) {
+        throw new ApiException(
+          1010,
+          "Hành động này đã được thực hiện trước đây!"
+        );
       }
     }
     // nấu tồn tại code trước đó thì trả về luôn
-    if(exist.code_verify) {
+    if (exist.code_verify) {
       return exist.code_verify;
     }
     let randomCode = random.int(100000, 999999);
     while (true) {
       let existCode = await this.Model.query().findOne({
-        code_verify: randomCode
+        code_verify: randomCode,
       });
       if (!existCode) {
         await this.Model.query().patchAndFetchById(exist.id, {
-          code_verify: randomCode
+          code_verify: randomCode,
         });
         break;
       }
@@ -203,10 +221,11 @@ export default class UserController extends BaseController {
 
     const allowFields = {
       password: "string!",
-      token: "string!"
+      new_password: "string!",
+      token: "string!",
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true
+      removeNotAllow: true,
     });
     let auth = this.request.auth;
     let user = await this.Model.query().findById(auth.id);
@@ -215,7 +234,27 @@ export default class UserController extends BaseController {
       throw new ApiException(9995, "User is not validated");
     }
 
-    let result = await user.changePassword(data["password"]);
+    let isValidOldPassword = await Model.compare(data.password, user.password);
+    if (!isValidOldPassword) {
+      throw new ApiException(1004, "Mật khẩu cũ không chính xác!");
+    }
+    if (data.password === data.new_password) {
+      throw new ApiException(1004, "Mật khẩu mới phải khác mật khẩu cũ!");
+    }
+    if (data.new_password.length > 10 || data.new_password.length < 6) {
+      throw new ApiException(1004, "Mật khẩu phải có 6 đến 10 kỹ tự!");
+    }
+    var similarity = stringSimilarity.compareTwoStrings(
+      data.password,
+      data.new_password
+    );
+    if (similarity > 0.8) {
+      throw new ApiException(
+        1004,
+        "Mật khẩu mới của bạn khá tương đồng với mật khẩu cũ, vui lòng chọn mật khẩu khác!"
+      );
+    }
+    let result = await user.changePassword(data["new_password"]);
     delete result["password"];
     return result;
   }
@@ -230,10 +269,10 @@ export default class UserController extends BaseController {
       address: "string",
       city: "string",
       country: "string",
-      link: "string"
+      link: "string",
     };
     let data = this.validate(inputs, allowFields, {
-      removeNotAllow: true
+      removeNotAllow: true,
     });
     let auth = this.request.auth;
     let user = await this.Model.query().findById(auth.id);
@@ -277,13 +316,13 @@ export default class UserController extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       token: "string!",
-      user_id: "string"
+      user_id: "string",
     };
     const data = this.validate(inputs, allowFields);
     try {
       const decodedToken = await Auth.decodeJWT(data.token, {
         key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"]
+        expiresIn: authConfig["JWT_EXPIRE"],
       });
       const id = !data.user_id ? decodedToken.id : data.user_id;
       const user = await this.Model.getInfo(id);
@@ -299,7 +338,7 @@ export default class UserController extends BaseController {
   // For development
   async getAllUsers() {
     this.response.success({
-      users: await this.Model.query()
+      users: await this.Model.query(),
     });
   }
 }
