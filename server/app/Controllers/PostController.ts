@@ -278,7 +278,7 @@ export default class PostController extends BaseController {
       this.PostImageModel.query().whereIn("id", data.image_del).delete(),
       this.writeAndInsertFile(this.request.files, data.id, data.image_sort)
     ]);
-    return "VietAnhdeptrai";
+    return "Edit post successfully";
   }
 
   async deletePostById() {

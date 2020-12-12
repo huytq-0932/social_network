@@ -69,7 +69,7 @@ export default class LikeController extends BaseController {
       await this.checkPermission(user.id, data.search_id);
     }
     await this.deleteSearch(data.search_id, data.all === "1", user.id);
-    return "VietAnhdeptrai";
+    return "Delete successfully";
   }
 
   async getSavedSearch() {
