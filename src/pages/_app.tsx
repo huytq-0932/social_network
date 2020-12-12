@@ -1,11 +1,11 @@
 import React from 'react'
 import App from 'next/app'
-
+import "@src/less/app.less";
 class MyApp extends App {
   render() {
-    const { Component, pageProps } = this.props
+    const { Component, pageProps } = this.props;
     return (
-      <div>hihihi</div>
+      <Component {...pageProps} />
     )
   }
 }

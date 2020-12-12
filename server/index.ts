@@ -3,11 +3,15 @@ if (!process.env.IS_TS_NODE) {
   require('module-alias/register');
 }
 import Server from '@core/Server'
+import Socket from '@core/Socket'
 
 (async () => {
   try {
     let server = new Server();
-    await server.start()
+   server.start().then((server) => {
+      //server stated
+      // Socket.connect(server)
+    });
     
   } catch (e) {
     console.error(e);

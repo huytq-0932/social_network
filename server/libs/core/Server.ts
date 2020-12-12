@@ -4,6 +4,7 @@ import express, { Response } from "express";
 import Router from "./Routes";
 import Database from "@core/Databases";
 import fileUpload from "express-fileupload";
+import Socket from '@core/Socket'
 let bodyParser = require("body-parser");
 const cors = require("cors");
 const nextI18NextMiddleware = require("next-i18next/middleware").default;
@@ -40,6 +41,7 @@ class Server {
   }
 
   async nextStart() {
+    console.log("process.env.MODE ", process.env.MODE)
     if (process.env.MODE !== "dev-server") {
       await nextApp.prepare();
       Server.nextApp = nextApp;
@@ -70,7 +72,7 @@ class Server {
     );
     this.express.use(
       cors({
-        origin: dev ? "*" : process.env.CORS_ORIGIN
+        origin: "*" 
       })
     );
 
@@ -81,12 +83,16 @@ class Server {
 
       return handle(req, res);
     });
-
+    
     await new Promise((r) =>
-      this.express.listen(this.port, this.host, () => {
+     {
+      let server = this.express.listen(this.port, this.host, () => {
         console.log(`server stated: ${this.host}:${this.port}`);
+        // @ts-ignore
         r();
       })
+      Socket.connect(server);
+     }
     );
     return {
       express: this.express,
