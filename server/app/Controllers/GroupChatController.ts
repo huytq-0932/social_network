@@ -152,6 +152,7 @@ export default class Controller extends BaseController {
       is_blocked,
     };
   }
+
   async sendMessage() {
     const inputs = this.request.all();
     const allowFields = {
@@ -187,6 +188,67 @@ export default class Controller extends BaseController {
       content: data.message,
       readed_user_ids: JSON.stringify([auth.id]),
     });
+  }
+
+  async deleteMessage() {
+    const inputs = this.request.all();
+    const allowFields = {
+      message_id: "number!",
+      // partner_id: "number",
+      // conversation_id: "number",
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    let exist = await this.ChatModel.query().findById(data.message_id);
+    if (!exist) {
+      throw new ApiException(9995, "Message is not validated");
+    }
+    if(exist.send_id !== auth.id) {
+      throw new ApiException(1009, "Can not access!");
+    }
+    
+    let [err, rs] = await to(this.ChatModel.query().deleteById(data.message_id));
+    if (err) throw new ApiException(1001, "Connect DB lỗi!");
+
+    return { message: `Delete successfully: ${rs} record` };
+  }
+
+  
+  async deleteConversation() {
+    const inputs = this.request.all();
+    const allowFields = {
+      partner_id: "number",
+      conversation_id: "number",
+    };
+    const data = this.validate(inputs, allowFields);
+    const auth = this.request.auth;
+    if (!data.partner_id && !data.conversation_id) {
+      throw new ApiException(
+        1004,
+        "Vui lòng truyền partner_id hoặc conversation_id!"
+      );
+    } 
+    let conversation;
+    if(data.conversation_id){
+      conversation = await this.Model.query().findById(data.conversation_id);
+    } else {
+      conversation = await this.Model.query()
+      .where("user_ids", "@>", auth.id)
+      .andWhere("user_ids", "@>", data.partner_id)
+      .first();
+    }
+    if(!conversation) {
+      throw new ApiException(9995, "Không tồn tại conversation!");
+    }
+    
+    if(!conversation.user_ids.includes(auth.id)) {
+      throw new ApiException(1009, "Can not access!");
+    }
+    
+    let [err, rs] = await to(this.Model.query().deleteById(conversation.id));
+    if (err) throw new ApiException(1001, "Connect DB lỗi!");
+
+    return { message: `Delete successfully: ${rs} record` };
   }
 
   async setReadMessage() {

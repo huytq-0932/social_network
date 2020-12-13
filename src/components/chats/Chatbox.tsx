@@ -3,7 +3,7 @@ const queryString = require("query-string");
 import allService from "@src/services/allService";
 const getConfig = require("next/config").default;
 const { publicRuntimeConfig } = getConfig();
-console.log("publicRuntimeConfig ", publicRuntimeConfig)
+console.log("publicRuntimeConfig ", publicRuntimeConfig);
 const ENDPOINT = publicRuntimeConfig.SOCKET_HOST || "https://luandz.cf";
 import { Form, Input, Button, Checkbox } from "antd";
 import moment from "moment";
@@ -16,10 +16,10 @@ let socket: any;
 let toUser = { id: "" };
 const Chatbox = () => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const fromId = _.get(auth(), "user.id");
-  
+
   const [messages, setMessages] = useState([]);
   const initSocket = () => {
     // @ts-ignore
@@ -40,25 +40,13 @@ const Chatbox = () => {
       })
       .on("message", (message: any) => {
         if (!message) return;
+        console.log("message ", message)
         setMessages((messages: any) => [...messages, message]);
       });
   };
 
   const onSendMessage = async (values) => {
-    setLoading(true)
-    // setSentLoading(true);
-    let [error, result] = await to(
-      allService().withAuth().sendMessage({
-        partner_id: toUser.id,
-        message: values.message,
-      })
-    );
-    setLoading(false)
-    if (error) {
-      alert(error.message);
-      return;
-    }
-    form.setFieldsValue({message: ""})
+    setLoading(true);
     socket.emit(
       "sendMessage",
       {
@@ -68,10 +56,23 @@ const Chatbox = () => {
         sender: auth().user,
       },
       () => {
-        // setMessage("");
-        // setSentLoading(false);
+        setLoading(false);
       }
     );
+    // setSentLoading(true);
+    let [error, result] = await to(
+      allService().withAuth().sendMessage({
+        partner_id: toUser.id,
+        message: values.message,
+      })
+    );
+    
+    if (error) {
+      alert(error.message);
+      return;
+    }
+    form.setFieldsValue({ message: "" });
+    
   };
 
   useEffect(() => {
@@ -99,32 +100,21 @@ const Chatbox = () => {
         return;
       }
       setMessages(_messages.conversations || []);
-      console.log("_messages.conversations ", _messages.conversations);
+      console.log("_messages.conversations ", _messages.conversations)
       setDisabled(_messages.is_blocked);
       initSocket();
     }
     fetch();
   }, []);
-  useEffect(() => {
-    // const chatRef = firebase.database().ref('general');
-    // chatRef.on('value', snapshot => {
-    // 	const getChats = snapshot.val();
-    // 	let ascChats = [];
-    // 	for(let chat in getChats){
-    // 		if(getChats[chat].message !== ''){
-    // 			ascChats.push({
-    // 				id: chat,
-    // 				message: getChats[chat].message,
-    // 				user: getChats[chat].user,
-    // 				date: getChats[chat].timestamp
-    // 			});
-    // 		}
-    // 	}
-    // 	const chats = ascChats.reverse();
-    // 	this.setState({chats});
-    // });
-  }, []);
-
+  const getSortedMessages = () => {
+    const chats  = messages.map(item => {
+      return {
+        ...item,
+        created: moment()
+      }
+    })
+    _.orderBy(messages, [ "createdAt"], ["desc"])
+  }
   return (
     <div>
       <Form
@@ -141,15 +131,20 @@ const Chatbox = () => {
           <Input placeholder="Nhập tin nhắn" />
         </Form.Item>
         <Form.Item>
-          <Button loading = {loading} disabled={disabled} htmlType="submit" type="primary">
+          <Button
+            loading={loading}
+            disabled={disabled}
+            htmlType="submit"
+            type="primary"
+          >
             Gửi
           </Button>
         </Form.Item>
       </Form>
       <div className="chatbox">
         <ul className="chat-list">
-          {messages.map((chat, index) => {
-            const postDate = moment(chat.createdAt);
+          { _.orderBy(messages, [ "created"], ["desc"]).map((chat, index) => {
+            const postDate = moment(chat.created);
             return (
               <li key={index}>
                 <em>{postDate.format("HH:mm DD/MM/YYYY")}</em>

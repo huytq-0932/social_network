@@ -17,6 +17,8 @@ Route.group(() => {
     Route.post("/get_conversation", "GroupChatController.getConversation").name("getConversation");
     Route.post("/set_read_message", "GroupChatController.setReadMessage").name("setReadMessage");
     Route.post("/send_message", "GroupChatController.sendMessage").name("sendMessage");
+    Route.post("/delete_message", "GroupChatController.deleteMessage").name("deleteMessage");
+    Route.post("/delete_conversation", "GroupChatController.deleteConversation").name("deleteConversation");
     
     Route.post("/users/getByPhone", "UserController.getByPhone").name("getByPhone");
     Route.post("/change_password", "UserController.updatePassword").name("updatePassword");

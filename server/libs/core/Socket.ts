@@ -66,7 +66,7 @@ class Socket {
             message: message,
             sender: sender,
             toId: toId,
-            createdAt: new Date(),
+            created: new Date(),
           });
 
           callback();
