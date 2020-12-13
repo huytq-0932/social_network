@@ -47,6 +47,7 @@ const Chatbox = () => {
 
   const onSendMessage = async (values) => {
     setLoading(true);
+    console.log("auth().user ", auth().user)
     socket.emit(
       "sendMessage",
       {

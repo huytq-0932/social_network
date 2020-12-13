@@ -103,7 +103,7 @@ export default class UserController extends BaseController {
 
     this.response.success({
       id: user.id,
-      username: user.name,
+      username: user.username,
       phonenumber: user.phone,
       token,
       avatar: user.avatar,
