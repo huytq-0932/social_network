@@ -211,10 +211,10 @@ export default class FriendshipController extends BaseController {
       suggested.map(async (item) => {
         let same_friends = await this.Friendship.getMultipleFriendsCount(user.id, item.id);
         return {
-          user_id: item.id,
+          user_id: item.id + "",
           username: item.name,
           avatar: item.avatar,
-          same_friends
+          same_friends: same_friends + ""
         };
       })
     );
