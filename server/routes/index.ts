@@ -10,16 +10,19 @@ Route.group(() => {
   Route.post("/all_users", "UserController.getAllUsers").name("getAllUsers");
 
   Route.group(() => {
-    
     Route.resource("/users", "UserController").name("users");
-    
-    Route.post("/get_list_conversation", "GroupChatController.getListConversation").name("getListConversation");
+
+    Route.post("/get_list_conversation", "GroupChatController.getListConversation").name(
+      "getListConversation"
+    );
     Route.post("/get_conversation", "GroupChatController.getConversation").name("getConversation");
     Route.post("/set_read_message", "GroupChatController.setReadMessage").name("setReadMessage");
     Route.post("/send_message", "GroupChatController.sendMessage").name("sendMessage");
     Route.post("/delete_message", "GroupChatController.deleteMessage").name("deleteMessage");
-    Route.post("/delete_conversation", "GroupChatController.deleteConversation").name("deleteConversation");
-    
+    Route.post("/delete_conversation", "GroupChatController.deleteConversation").name(
+      "deleteConversation"
+    );
+
     Route.post("/users/getByPhone", "UserController.getByPhone").name("getByPhone");
     Route.post("/change_password", "UserController.updatePassword").name("updatePassword");
     Route.post("/get_user_info", "UserController.getInfo").name("getInfo");
@@ -64,6 +67,14 @@ Route.group(() => {
     //Push setting
     Route.post("/get_push_settings", "PushSettingController.getPushSetting").name("getPushSetting");
     Route.post("/set_push_settings", "PushSettingController.setPushSetting").name("setPushSetting");
+
+    //Notifications
+    Route.post("/get_notification", "NotificationController.getNotification").name(
+      "getNotification"
+    );
+    Route.post("/set_read_notification", "NotificationController.setReadNotification").name(
+      "setReadNotification"
+    );
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
