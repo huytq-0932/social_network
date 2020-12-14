@@ -78,6 +78,9 @@ Route.group(() => {
     Route.post("/set_read_notification", "NotificationController.setReadNotification").name(
       "setReadNotification"
     );
+
+    // Dev token
+    Route.post("/set_devtoken", "DevtokenController.setDevtoken").name("setDevtoken");
   }).middleware([AuthApiMiddleware]);
 })
   .middleware([ExtendMiddleware])
