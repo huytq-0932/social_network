@@ -128,10 +128,10 @@ class BaseController {
     let message = "unknown";
     switch (errorType) {
       case "Invalid Type":
-        message = `Datatype of ${data.path} is incorrect. Expected: ${data.typeOfField} but got: ${data.realType}`;
+        message = `Parameter type is invalid`;
         break;
       case "required":
-        message = `${data.path} is required. But not found.`;
+        message = `Parameter is not enough`;
     }
     return {
       error: true,
