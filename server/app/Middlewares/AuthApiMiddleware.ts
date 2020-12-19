@@ -14,11 +14,11 @@ class AuthApiMiddleware extends BaseMiddleware {
     let token = this.getBearerTokenFromHeader(request)
     this.cookies = new Cookies(token);
     this.checkToken().then(res => {
-      if (res.error) return response.status(401).json({code: 9998, error: res.error})
+      if (res.error) return response.status(401).json({code: "9998", error: res.error})
       next();
     }).catch(err => {
       console.log(err)
-      return response.status(401).json({code: 9998, error: err})
+      return response.status(401).json({code: "9998", error: err})
     })
   }
 
@@ -46,14 +46,14 @@ class AuthApiMiddleware extends BaseMiddleware {
     let auth = await Auth.verify(token, {
       key: authConfig['SECRET_KEY']
     });
-    if (!auth) return {error: "Token is invalid", code: 9998};
+    if (!auth) return {error: "Token is invalid", code: "9998"};
     let userId = auth.id;
     let user = await this.UserModel.query().findById(userId);
     if (!user) {
-      return {error: "Token is invalid", code: 9998};
+      return {error: "Token is invalid", code: "9998"};
     }
     if (user.activeStatus == 2) {
-      return {error: "tài khoản đã bị khóa", code: 9998};
+      return {error: "tài khoản đã bị khóa", code: "9998"};
     }
 
     console.log("auth ", auth);
