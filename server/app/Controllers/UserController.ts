@@ -90,7 +90,7 @@ export default class UserController extends BaseController {
     }
     let token = Auth.generateJWT(
       {
-        id: user.id,
+        id: user.id + "",
         phonenumber: user.phone,
         username: user.username,
         avatar:user.avatar
@@ -102,12 +102,12 @@ export default class UserController extends BaseController {
     );
 
     this.response.success({
-      id: user.id,
+      id: user.id + "",
       username: user.username,
       phonenumber: user.phone,
       token,
       avatar: user.avatar,
-      active: !user.avatar && !user.name ? -1 : 1,
+      active: !user.avatar && !user.name ? "-1" : "1",
     });
   }
 

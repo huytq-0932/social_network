@@ -68,7 +68,7 @@ class ExtendMiddleware extends BaseMiddleware {
     })}`)
     this.response.sent = 1;
     this.response.json({
-      code: 1000,
+      code: "1000",
       message: "OK",
       data: data
     });
