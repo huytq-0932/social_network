@@ -29,7 +29,25 @@ export default class NotificationController extends BaseController {
   }
 
   async setReadNotification() {
-    // Luân làm phần này liên quan đến push (2 trường badge và last_update)
+    const inputs = this.request.all();
+    const allowFields = {
+      token: "string!",
+      notification_id: "string!"
+    };
+    let data = this.validate(inputs, allowFields, {
+      removeNotAllow: true
+    });
+    let user = await this.validateUserToken(this.request.auth.id);
+    if (!/^\d+$/.test(data.notification_id))
+      throw new ApiException(9994, "No Data or end of list data");
+    let notification = await this.NotificationModel.query().findById(data.notification_id);
+    if (!notification) throw new ApiException(9994, "No Data or end of list data");
+    if (notification.user_id !== user.id) throw new ApiException(1009, "Not access.");
+    let newNotification = await notification.setRead();
+    const badge = await this.NotificationModel.query()
+      .select()
+      .where({ read: "0", user_id: user.id });
+    return { badge: badge.length + "", last_update: newNotification.last_update };
   }
 
   async validateUserToken(userId) {

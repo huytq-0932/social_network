@@ -13,6 +13,14 @@ class NotificationModel extends BaseModel {
   avatar: string;
   group: string;
   read: string;
+  last_update: Date;
+
+  setRead() {
+    return this.$query().patchAndFetchById(this.id, {
+      read: "1",
+      last_update: new Date()
+    });
+  }
 }
 
 export default NotificationModel;
