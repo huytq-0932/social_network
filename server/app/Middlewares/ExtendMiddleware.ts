@@ -79,6 +79,7 @@ class ExtendMiddleware extends BaseMiddleware {
       code: errorCode,
       info: info
     };
+    
     if (typeof err === 'string' || err instanceof String) {
       data.message =  err;
     }
@@ -87,6 +88,7 @@ class ExtendMiddleware extends BaseMiddleware {
   }
 
   error(errorCode, err, info, httpCode) {
+    errorCode = "" + (errorCode || "")
     if(this.response.sent){
       logger.info(`RESPONSE [${this.response.requestId}][ERROR-DUP]${JSON.stringify({
         errorCode: errorCode,

@@ -163,7 +163,7 @@ export default class Controller extends BaseController {
     const auth = this.request.auth;
     let partner = await this.UserModel.query().findById(data.partner_id);
     if (!partner) {
-      throw new ApiException(9995, "Không tồn tại partner!");
+      throw new ApiException(1004, "Không tồn tại partner!");
     }
     const is_blocked = await this.FriendshipModel.isBlockedTogether(
       auth.id,

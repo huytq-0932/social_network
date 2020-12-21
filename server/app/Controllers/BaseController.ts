@@ -119,7 +119,13 @@ class BaseController {
     options = options || { removeNotAllow: false };
     let result = this.validateFields(data, allowFields, options.removeNotAllow);
     if (result.error) {
-      throw new ApiException(9996, result.message);
+      if(result.message === "Parameter is not enough"){
+        throw new ApiException(1002, result.message);
+      }
+      if(result.message === "Parameter type is invalid"){
+        throw new ApiException(1003, result.message);
+      }
+      throw new ApiException(1004, result.message);
     }
     return result?.data;
   }

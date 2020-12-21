@@ -56,7 +56,6 @@ class AuthApiMiddleware extends BaseMiddleware {
       return {error: "tài khoản đã bị khóa", code: "9998"};
     }
 
-    console.log("auth ", auth);
     this.request.auth = auth;
     return {token};
   }
