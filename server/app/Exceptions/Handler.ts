@@ -9,11 +9,11 @@ class ExceptionHandler {
    * @param response
    */
   async handle(error, {request, response}) {
-    let code = 500, message = "", data = {}, httpCode = 200;
+    let code = "500", message = "", data = {}, httpCode = 200;
     if (typeof error !== "object") {
       error = new Error(error)
     }
-    code = Number(error.code) || 500;
+    code = (error.code + "") || "500";
     message = error.message || "";
     data = error.data || error.stack || {};
     httpCode = error.httpCode || 200
