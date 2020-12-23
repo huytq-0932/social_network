@@ -30,7 +30,7 @@ export default class LikeController extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       token: "string!",
-      user_id: "number",
+      user_id: "string!",
       keyword: "string!",
       index: "number!",
       count: "number!"
@@ -39,6 +39,14 @@ export default class LikeController extends BaseController {
       removeNotAllow: true
     });
     let user = await this.validateUserToken(this.request.auth.id);
+    if (
+      !/^\d+$/.test(data.user_id) ||
+      data.user_id !== user.id + "" ||
+      data.index < 0 ||
+      data.count < 0
+    ) {
+      throw new ApiException(1003, "Parameter type is invalid.");
+    }
     let posts = await this.retrievePost(data.keyword, data.index, data.count, user.id);
     const postIds = posts.map((post) => post.id);
     const [postsImages, postsVideos] = await Promise.all([
@@ -167,7 +175,13 @@ export default class LikeController extends BaseController {
       delete post.posterid;
       delete post.postername;
       delete post.posteravatar;
-      post.author = { id: posterid, username: postername, avatar: posteravatar };
+      delete post.user_id;
+      delete post.state;
+      delete post.banned;
+      delete post.createdAt;
+      delete post.updatedAt;
+      delete post.can_comment;
+      post.author = { id: posterid + "", username: postername, avatar: posteravatar };
       return post;
     });
   }
