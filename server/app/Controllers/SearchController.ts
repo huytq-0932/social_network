@@ -53,6 +53,7 @@ export default class LikeController extends BaseController {
       this.getPostImages(postIds),
       this.getPostVideos(postIds)
     ]);
+    await this.saveSearch(data.keyword, user.id);
     return posts.map((post) => {
       return {
         ...post,
@@ -66,13 +67,26 @@ export default class LikeController extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       token: "string!",
-      search_id: "number",
-      all: "string!"
+      search_id: "string",
+      all: "string"
     };
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
     let user = await this.validateUserToken(this.request.auth.id);
+    console.log(data.all, data.search_id);
+    if (data.all === null || data.all === undefined) {
+      if (data.search_id === null || data.search_id === undefined)
+        throw new ApiException(1002, "Parameter is not enough.");
+      else data.all = "0";
+    } else {
+      if (data.all !== "0" && data.all !== "1") {
+        throw new ApiException(1003, "Parameter type is invalid.");
+      }
+    }
+    if (!/^\d+$/.test(data.search_id)) {
+      throw new ApiException(9994);
+    }
     if (data.all === "0") {
       await this.checkPermission(user.id, data.search_id);
     }
@@ -111,14 +125,32 @@ export default class LikeController extends BaseController {
   }
 
   async retrieveSearch(searchInput: SearchInput) {
-    let search = await this.SearchModel.query()
+    let searches: any = await this.SearchModel.query()
       .select()
-      .where("keyword", "like", `%${searchInput.keyword}%`)
-      .andWhere("user_id", searchInput.userId)
+      .where("user_id", searchInput.userId)
+      .andWhere("keyword", "like", `%${searchInput.keyword}%`)
       .orderBy("created_at")
       .limit(searchInput.count)
       .offset(searchInput.index);
-    return search;
+    return searches.map((search) => {
+      const { created_at } = search;
+      delete search.updated_at;
+      delete search.created_at;
+      delete search.user_id;
+      search.created = created_at;
+      search.id = search.id + "";
+      return search;
+    });
+  }
+
+  async saveSearch(keyword: string, userId: number) {
+    let searches = await this.SearchModel.query().select().where("keyword", keyword);
+    if (!searches.length) {
+      let search = await this.SearchModel.query().insert({ keyword: keyword, user_id: userId });
+      return search;
+    } else {
+      return searches[0];
+    }
   }
 
   async checkPermission(userId, searchId) {
