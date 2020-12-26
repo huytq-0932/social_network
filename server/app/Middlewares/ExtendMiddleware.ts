@@ -1,6 +1,6 @@
-import BaseMiddleware from './BaseMiddleware'
-import Logger from '@core/Logger'
-const logger = Logger('api');
+import BaseMiddleware from "./BaseMiddleware";
+import Logger from "@core/Logger";
+const logger = Logger("api");
 
 /**
  * Mở rộng chức năng của response
@@ -13,17 +13,20 @@ class ExtendMiddleware extends BaseMiddleware {
     this.request = request;
     this.response = response;
 
-    let id = Date.now() +''+ Math.floor(Math.random() * 1000000000);
-    let params = JSON.parse(JSON.stringify(this.all()))
-    delete params.idImages
-    if(params.profile && params.profile.idImages){
-      delete params.profile.idImages
+    let id = Date.now() + "" + Math.floor(Math.random() * 1000000000);
+    let params = JSON.parse(JSON.stringify(this.all()));
+    delete params.idImages;
+    if (params.profile && params.profile.idImages) {
+      delete params.profile.idImages;
     }
-    logger.info(`REQUEST [${id}] ${JSON.stringify({
-      method: this.request.method,
-      url: this.request.originalUrl,
-      headers: this.request.headers,
-      data: params})}`)
+    logger.info(
+      `REQUEST [${id}] ${JSON.stringify({
+        method: this.request.method,
+        url: this.request.originalUrl,
+        headers: this.request.headers,
+        data: params,
+      })}`
+    );
 
     response.requestId = id;
     // extend request
@@ -32,9 +35,11 @@ class ExtendMiddleware extends BaseMiddleware {
 
     // extend response
     response.success = this.success.bind(this);
+    response.addReturnData = this.addReturnData.bind(this);
+    this.response.addedData = {};
     response.error = this.error.bind(this);
     this.response.sent = 0;
-    next()
+    next();
   }
 
   getHeaders() {
@@ -42,70 +47,100 @@ class ExtendMiddleware extends BaseMiddleware {
       authUser: this.request.authUser,
       lang_code: this.request.headers.lang_code,
       role_code: this.request.headers.role_code,
-      userAgent: this.request.headers['user-agent'],
+      userAgent: this.request.headers["user-agent"],
       authorization: this.request.headers.authorization,
-      other: this.request.headers
-    }
+      other: this.request.headers,
+    };
   }
 
   all() {
     let p = {};
-    Object.assign(p, this.request.query);    // url query string, e.g api/users?param1=x&param2=y
-    Object.assign(p, this.request.body);     // json parameters
-    Object.assign(p, this.request.params);   // url parameters, e.g api/users/:id
+    Object.assign(p, this.request.query); // url query string, e.g api/users?param1=x&param2=y
+    Object.assign(p, this.request.body); // json parameters
+    Object.assign(p, this.request.params); // url parameters, e.g api/users/:id
     return p;
   }
 
+  addReturnData(value) {
+    this.response.addedData = value;
+  }
+
   success(data = null, httpCode = 200) {
-    if(this.response.sent){
-      logger.info(`RESPONSE [${this.response.requestId}][OK-DUP]${JSON.stringify({
-        data: data
-      })}`)
+    if (this.response.sent) {
+      logger.info(
+        `RESPONSE [${this.response.requestId}][OK-DUP]${JSON.stringify({
+          data: data,
+        })}`
+      );
       return;
     }
-    logger.info(`RESPONSE [${this.response.requestId}][OK] ${JSON.stringify({
-      data: data
-    })}`)
+    logger.info(
+      `RESPONSE [${this.response.requestId}][OK] ${JSON.stringify({
+        data: data,
+      })}`
+    );
     this.response.sent = 1;
+    let responseData = {
+      data: data,
+      ...this.response.addedData,
+    };
+
+    function toString(o) {
+      Object.keys(o).forEach((k) => {
+        if (typeof o[k] === "object" && o[k]) {
+          return toString(o[k]);
+        }
+        if(typeof o[k] === "number"){
+          o[k] = "" + o[k];
+        }
+      });
+
+      return o;
+    }
+    let returnData = toString(responseData);
     this.response.json({
       code: "1000",
       message: "OK",
-      data: data
+      ...returnData,
     });
   }
 
   handleError(errorCode, err, info, httpCode = 1000) {
     let data: any = {
       code: errorCode,
-      info: info
+      info: info,
     };
-    
-    if (typeof err === 'string' || err instanceof String) {
-      data.message =  err;
+
+    if (typeof err === "string" || err instanceof String) {
+      data.message = err;
     }
     this.response.sent = 1;
     this.response.status(httpCode).send(data);
   }
 
   error(errorCode, err, info, httpCode) {
-    errorCode = "" + (errorCode || "")
-    if(this.response.sent){
-      logger.info(`RESPONSE [${this.response.requestId}][ERROR-DUP]${JSON.stringify({
+    errorCode = "" + (errorCode || "");
+    if (this.response.sent) {
+      logger.info(
+        `RESPONSE [${this.response.requestId}][ERROR-DUP]${JSON.stringify({
+          errorCode: errorCode,
+          error: err,
+          info: info,
+          httpCode: httpCode,
+        })}`
+      );
+      return;
+    }
+    logger.info(
+      `RESPONSE [${this.response.requestId}][ERROR] ${JSON.stringify({
         errorCode: errorCode,
         error: err,
         info: info,
-        httpCode: httpCode
-      })}`)
-      return;
-    }
-    logger.info(`RESPONSE [${this.response.requestId}][ERROR] ${JSON.stringify({
-      errorCode: errorCode,
-      error: err,
-      info: info,
-      httpCode: httpCode
-    })}`)
+        httpCode: httpCode,
+      })}`
+    );
     this.handleError(errorCode, err, info, httpCode);
   }
 }
 
-module.exports= ExtendMiddleware.export();
+module.exports = ExtendMiddleware.export();

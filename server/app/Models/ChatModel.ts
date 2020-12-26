@@ -1,5 +1,5 @@
 import BaseModel from "./BaseModel";
-
+import to from "await-to-js";
 class LikeModel extends BaseModel {
   static tableName = "chats";
 
@@ -10,7 +10,17 @@ class LikeModel extends BaseModel {
   receive_id: number;
   content: string;
   createdAt: Date;
-  readed_user_ids: any
+  readed_user_ids: any;
+  static async getNumberOfNewMessage(userId, conversationIds) {
+    let [error, unreadMessages = []] = await to(
+      this.query()
+        .whereIn("group_id", conversationIds)
+        .whereNot("readed_user_ids", "@>", userId)
+        .distinct("group_id")
+    );
+    console.log("unreadMessages ", unreadMessages)
+    return unreadMessages.length;
+  }
 }
 
 export default LikeModel;

@@ -19,7 +19,7 @@ const Demo = () => {
     }
     // console.log
     let token = user.token;
-    auth().setAuth({user, token});
+    auth().setAuth({user, token, phonenumber: values.phonenumber});
     location.reload();
   };
 

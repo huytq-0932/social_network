@@ -43,42 +43,40 @@ export default class Controller extends BaseController {
     let [_error, partners] = await to(
       Promise.all(
         conversations.map((item) => {
-          let partnerId =( item.user_ids || []).find(ele => ele != auth.id);
-          if(!partnerId){
-            return
+          let partnerId = (item.user_ids || []).find((ele) => ele != auth.id);
+          if (!partnerId) {
+            return;
           }
-          return this.UserModel.query()
-            .findById(partnerId);
+          return this.UserModel.query().findById(partnerId);
         })
       )
-    )
+    );
     if (_error) {
       throw new ApiException(1001, "Can not connect to DB!");
     }
     conversations = conversations.map((item, index) => {
-      delete item.createdAt
-      delete item.updatedAt
-      delete item.user_ids
-      let partner = (partners[index] || {} ) as UserModel;
+      delete item.createdAt;
+      delete item.updatedAt;
+      delete item.user_ids;
+      let partner = (partners[index] || {}) as UserModel;
       item = {
-        ...item, 
+        ...item,
         Partner: {
           id: partner.id,
           username: partner.username,
-          avatar: partner.avatar
-        }
-      }
+          avatar: partner.avatar,
+        },
+      };
       if (!lastMessages[index]) {
         return {
           ...item,
-          lastMessage: null
+          lastMessage: null,
         };
       }
       let created = _.get(lastMessages[index], "createdAt", "");
       created = moment(created).valueOf();
       return {
         ...item,
-        
         lastMessage: {
           message: _.get(lastMessages[index], "content", ""),
           created: created + "",
@@ -88,6 +86,9 @@ export default class Controller extends BaseController {
         },
       };
     });
+    let conversationIds = conversations.map(item => item.id)
+    let numNewMessage = await ChatModel.getNumberOfNewMessage(auth.id, conversationIds);
+    this.response.addReturnData({ numNewMessage: numNewMessage});
     return conversations;
   }
   async getConversation() {

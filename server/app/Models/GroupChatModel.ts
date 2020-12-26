@@ -7,6 +7,7 @@ class Model extends BaseModel {
   id: number;
   user_ids: any;
   createdAt: Date;
+  
 }
 
 export default Model;
