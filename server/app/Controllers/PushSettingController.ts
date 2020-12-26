@@ -4,7 +4,7 @@ import UserModel from "@root/server/app/Models/UserModel";
 import ApiException from "@app/Exceptions/ApiException";
 import _ from "lodash";
 
-export default class CommentController extends BaseController {
+export default class PushSettingController extends BaseController {
   UserModel = UserModel;
   PushSettingModel = PushSettingModel;
 
@@ -59,6 +59,7 @@ export default class CommentController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
+    if (!this.validateInput(data)) throw new ApiException(1003);
     let user = await this.validateUserToken(this.request.auth.id);
     let insertObj = {
       user_id: user.id,
@@ -86,6 +87,16 @@ export default class CommentController extends BaseController {
     delete pushSetting.user_id;
     delete pushSetting.id;
     return pushSetting;
+  }
+
+  validateInput(inputs) {
+    let check = true;
+    Object.keys(inputs).forEach((key) => {
+      if (key !== "token") {
+        if (!["0", "1"].includes(inputs[key])) check = false;
+      }
+    });
+    return check;
   }
 
   async validateUserToken(userId) {

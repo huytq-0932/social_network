@@ -15,10 +15,10 @@ const CODE_MESSAGE = {
   "1004": "Parameter value is invalid",
   "1005": "Unknown error",
   "1006": "File size is too big",
-  "1007": "Upoad File Failed!",
+  "1007": "Upload File Failed!",
   "1008": "Maximum number of images",
   "1009": "Not access",
-  "1010": "action has been done previously by this user",
+  "1010": "action has been done previously by this user"
 };
 class ApiException extends Exception {
   constructor(code: number | string = "", message = "", data?) {
@@ -26,7 +26,7 @@ class ApiException extends Exception {
     let _code = code;
     if (!_message) {
       _code = "1005";
-      _message = "Unknown error"
+      _message = "Unknown error";
     }
     super(_code, _message, data, 400);
   }
