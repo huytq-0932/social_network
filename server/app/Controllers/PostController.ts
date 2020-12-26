@@ -409,18 +409,21 @@ export default class PostController extends BaseController {
       this.getPostVideos([data.id]),
       this.getPostComments([data.id])
     ]);
-
-    this.response.success({
+    let response: any = {
       ...postInfo,
       author: postAuthor,
-      like: postLikes.length,
-      is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
-      is_blocked: postBlocked.length > 0,
-      can_edit: postInfo.user_id === user.id,
+      like: postLikes.length + "",
+      is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1 ? "1" : "0",
+      is_blocked: postBlocked.length > 0 ? "1" : "0",
+      can_edit: postInfo.user_id === user.id ? "1" : "0",
       image: postImages,
-      comment: postComments.length,
+      comment: postComments.length + "",
       video: postVideos
-    });
+    };
+    delete response.user_id;
+    response.id = response.id + "";
+    response.state = response.state + "";
+    this.response.success(response);
   }
 
   async getPostAuthor(userIds: number[]) {
