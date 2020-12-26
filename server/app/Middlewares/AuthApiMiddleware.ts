@@ -58,8 +58,7 @@ class AuthApiMiddleware extends BaseMiddleware {
     if (user.activeStatus == 2) {
       return {error: "Not access", code: "1009"};
     }
-
-    this.request.auth = auth;
+    this.request.auth = user;
     return {token};
   }
 

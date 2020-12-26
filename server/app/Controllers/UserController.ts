@@ -102,11 +102,11 @@ export default class UserController extends BaseController {
       password: data.password,
     });
     if (!user) {
-      throw new ApiException(7000, "Can not login");
+      throw new ApiException(9995, "Can not login");
     }
     let token = Auth.generateJWT(
       {
-        id: user.id + "",
+        id: user.id,
         phonenumber: user.phone,
         username: user.username,
         avatar:user.avatar
@@ -271,7 +271,9 @@ export default class UserController extends BaseController {
     if (!user) {
       throw new ApiException(9995, "User is not validated");
     }
-
+    if(user.phone === data.new_password) {
+      throw new ApiException(1004, "Mật khẩu k được trùng sdt!");
+    }
     let isValidOldPassword = await Model.compare(data.password, user.password);
     if (!isValidOldPassword) {
       throw new ApiException(1004, "Mật khẩu cũ không chính xác!");

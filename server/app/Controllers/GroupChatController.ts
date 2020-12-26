@@ -6,6 +6,7 @@ import FriendshipModel from "@root/server/app/Models/FriendshipModel";
 import to from "await-to-js";
 import ApiException from "@app/Exceptions/ApiException";
 import _ from "lodash";
+import moment from "moment";
 export default class Controller extends BaseController {
   Model = Model;
   ChatModel = ChatModel;
@@ -20,7 +21,6 @@ export default class Controller extends BaseController {
     };
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
-
     let result = await this.Model.query()
       .where("user_ids", "@>", auth.id)
       .orderBy("updatedAt", "desc")
@@ -40,28 +40,55 @@ export default class Controller extends BaseController {
     if (error) {
       throw new ApiException(1001, "Can not connect to DB!");
     }
+    let [_error, partners] = await to(
+      Promise.all(
+        conversations.map((item) => {
+          let partnerId =( item.user_ids || []).find(ele => ele != auth.id);
+          if(!partnerId){
+            return
+          }
+          return this.UserModel.query()
+            .findById(partnerId);
+        })
+      )
+    )
+    if (_error) {
+      throw new ApiException(1001, "Can not connect to DB!");
+    }
     conversations = conversations.map((item, index) => {
+      delete item.createdAt
+      delete item.updatedAt
+      delete item.user_ids
+      let partner = (partners[index] || {} ) as UserModel;
+      item = {
+        ...item, 
+        Partner: {
+          id: partner.id,
+          username: partner.username,
+          avatar: partner.avatar
+        }
+      }
       if (!lastMessages[index]) {
         return {
           ...item,
-          lastMessage: null,
+          lastMessage: null
         };
       }
-
+      let created = _.get(lastMessages[index], "createdAt", "");
+      created = moment(created).valueOf();
       return {
         ...item,
+        
         lastMessage: {
           message: _.get(lastMessages[index], "content", ""),
-          created: _.get(lastMessages[index], "createdAt", ""),
+          created: created + "",
           unread: !_.get(lastMessages[index], "readed_user_ids", []).includes(
             auth.id
           ),
         },
       };
     });
-    return {
-      data: conversations,
-    };
+    return conversations;
   }
   async getConversation() {
     const inputs = this.request.all();
@@ -169,7 +196,7 @@ export default class Controller extends BaseController {
       auth.id,
       partner.id
     );
-    if(is_blocked) {
+    if (is_blocked) {
       throw new ApiException(1009, "2 người đã chặn nhau!");
     }
     let existConversation = await this.Model.query()
@@ -203,17 +230,18 @@ export default class Controller extends BaseController {
     if (!exist) {
       throw new ApiException(9995, "Message is not validated");
     }
-    if(exist.send_id !== auth.id) {
+    if (exist.send_id !== auth.id) {
       throw new ApiException(1009, "Can not access!");
     }
-    
-    let [err, rs] = await to(this.ChatModel.query().deleteById(data.message_id));
+
+    let [err, rs] = await to(
+      this.ChatModel.query().deleteById(data.message_id)
+    );
     if (err) throw new ApiException(1001, "Connect DB lỗi!");
 
     return { message: `Delete successfully: ${rs} record` };
   }
 
-  
   async deleteConversation() {
     const inputs = this.request.all();
     const allowFields = {
@@ -227,24 +255,24 @@ export default class Controller extends BaseController {
         1004,
         "Vui lòng truyền partner_id hoặc conversation_id!"
       );
-    } 
+    }
     let conversation;
-    if(data.conversation_id){
+    if (data.conversation_id) {
       conversation = await this.Model.query().findById(data.conversation_id);
     } else {
       conversation = await this.Model.query()
-      .where("user_ids", "@>", auth.id)
-      .andWhere("user_ids", "@>", data.partner_id)
-      .first();
+        .where("user_ids", "@>", auth.id)
+        .andWhere("user_ids", "@>", data.partner_id)
+        .first();
     }
-    if(!conversation) {
+    if (!conversation) {
       throw new ApiException(9995, "Không tồn tại conversation!");
     }
-    
-    if(!conversation.user_ids.includes(auth.id)) {
+
+    if (!conversation.user_ids.includes(auth.id)) {
       throw new ApiException(1009, "Can not access!");
     }
-    
+
     let [err, rs] = await to(this.Model.query().deleteById(conversation.id));
     if (err) throw new ApiException(1001, "Connect DB lỗi!");
 
