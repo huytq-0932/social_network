@@ -14,7 +14,7 @@ class AuthApiMiddleware extends BaseMiddleware {
     let token = this.getBearerTokenFromHeader(request)
     this.cookies = new Cookies(token);
     this.checkToken().then(res => {
-      if (res.error) return response.status(401).json({code: "9998", error: res.error})
+      if (res.error) return response.status(401).json({code: res.code, error: res.error})
       next();
     }).catch(err => {
       console.log(err)
@@ -43,6 +43,9 @@ class AuthApiMiddleware extends BaseMiddleware {
   async checkToken() {
     let inputs = this.request.all() || {};
     let token = inputs.token;
+    if(!token){
+      return {error: "Parameter is not enough", code: "1002"};
+    }
     let auth = await Auth.verify(token, {
       key: authConfig['SECRET_KEY']
     });
@@ -53,7 +56,7 @@ class AuthApiMiddleware extends BaseMiddleware {
       return {error: "Token is invalid", code: "9998"};
     }
     if (user.activeStatus == 2) {
-      return {error: "tài khoản đã bị khóa", code: "9998"};
+      return {error: "Not access", code: "1009"};
     }
 
     this.request.auth = auth;
