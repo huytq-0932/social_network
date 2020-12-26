@@ -318,6 +318,8 @@ export default class PostController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: false
     });
+    const { files } = this.request;
+    if (files && files.image && files.video) throw new ApiException(1004);
     let auth = this.request.auth;
     let user = await this.UserModel.query().findById(auth.id);
     if (!user) {
@@ -331,9 +333,8 @@ export default class PostController extends BaseController {
       state: 0,
       banned: "0"
     });
-    const { files } = this.request;
     this.writeAndInsertFile(files, post.id, data.image_sort);
-    return { postId: post.id };
+    return { id: post.id };
   }
 
   async writeAndInsertFile(files, postId, imageSort) {
