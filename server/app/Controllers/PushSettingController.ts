@@ -18,6 +18,9 @@ export default class CommentController extends BaseController {
     });
     let user = await this.validateUserToken(this.request.auth.id);
     let pushSetting = await this.PushSettingModel.query().findOne({ user_id: user.id });
+    if (!pushSetting) {
+      pushSetting = await this.PushSettingModel.query().insertAndFetch({ user_id: user.id });
+    }
     return pushSetting;
   }
 
