@@ -20,7 +20,7 @@ class BaseController {
   insertImage(file) {
     let imageName = file.name;
     let time = moment().valueOf();
-    imageName = `${time}-${imageName}`;
+    imageName = `${time}-${Math.random().toString(36).substr(2, 9)}.jpg`;
     fs.writeFileSync(
       path.join(__dirname, "../../../public/static/data/images/", imageName),
       file.data
@@ -31,7 +31,7 @@ class BaseController {
   insertVideo(file) {
     let imageName = file.name;
     let time = moment().valueOf();
-    imageName = `${time}-` + imageName;
+    imageName = `${time}-` + Math.random().toString(36).substr(2, 9) + ".mp4";
     fs.writeFileSync(
       path.join(__dirname, "../../../public/static/data/videos/", imageName),
       file.data
@@ -119,10 +119,10 @@ class BaseController {
     options = options || { removeNotAllow: false };
     let result = this.validateFields(data, allowFields, options.removeNotAllow);
     if (result.error) {
-      if(result.message === "Parameter is not enough"){
+      if (result.message === "Parameter is not enough") {
         throw new ApiException(1002, result.message);
       }
-      if(result.message === "Parameter type is invalid"){
+      if (result.message === "Parameter type is invalid") {
         throw new ApiException(1003, result.message);
       }
       throw new ApiException(1004, result.message);

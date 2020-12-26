@@ -12,6 +12,10 @@ class UserModel extends BaseModel {
   username: string;
   password: string;
   avatar: string;
+  cover_image: string;
+  link: string;
+  city: string;
+  country: string;
   phone: string;
   code_verify: string;
   is_verify: number;

@@ -18,6 +18,7 @@ export default class DevtokenController extends BaseController {
     let data = this.validate(inputs, allowFields, {
       removeNotAllow: true
     });
+    if (!["0", "1"].includes(data.devtype)) throw new ApiException(1004);
     let user = await this.validateUserToken(this.request.auth.id);
     let insertObj = {
       user_id: user.id,
