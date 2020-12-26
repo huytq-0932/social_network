@@ -22,6 +22,7 @@ export default class CommentController extends BaseController {
       pushSetting = await this.PushSettingModel.query().insertAndFetch({ user_id: user.id });
     }
     delete pushSetting.user_id;
+    delete pushSetting.id;
     return pushSetting;
   }
 
@@ -69,6 +70,7 @@ export default class CommentController extends BaseController {
       pushSetting = await this.PushSettingModel.query().insert(insertObj);
     }
     delete pushSetting.user_id;
+    delete pushSetting.id;
     return pushSetting;
   }
 
