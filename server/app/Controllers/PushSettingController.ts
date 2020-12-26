@@ -19,7 +19,21 @@ export default class CommentController extends BaseController {
     let user = await this.validateUserToken(this.request.auth.id);
     let pushSetting = await this.PushSettingModel.query().findOne({ user_id: user.id });
     if (!pushSetting) {
-      pushSetting = await this.PushSettingModel.query().insertAndFetch({ user_id: user.id });
+      let insertObj = {
+        user_id: user.id,
+        like_comment: "1",
+        from_friends: "1",
+        request_friend: "1",
+        suggest_friend: "1",
+        birthday: "1",
+        video: "1",
+        report: "1",
+        sound_on: "1",
+        notification_on: "1",
+        vibrant_on: "1",
+        led_on: "1"
+      };
+      pushSetting = await this.PushSettingModel.query().insertAndFetch(insertObj);
     }
     delete pushSetting.user_id;
     delete pushSetting.id;
