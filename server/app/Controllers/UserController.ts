@@ -5,14 +5,17 @@ import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
 import _ from "lodash";
+import FriendshipModel from "@app/Models/FriendshipModel";
+
 var stringSimilarity = require("string-similarity");
 
 const random = require("random");
 
 export default class UserController extends BaseController {
   Model = Model;
-  
-  async getByPhone(){
+  FriendshipModel = FriendshipModel;
+
+  async getByPhone() {
     const inputs = this.request.all();
     const allowFields = {
       phonenumber: "string!"
@@ -24,14 +27,17 @@ export default class UserController extends BaseController {
         1004,
         "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
       );
-    };
-    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    }
+    ;
+    let exist = await this.Model.query().findOne({phone: data.phonenumber});
     if (!exist) {
       throw new ApiException(9996, "User not Exist");
-    };
+    }
+    ;
     delete exist.password;
     return exist;
   }
+
   async signup() {
     const inputs = this.request.all();
     const allowFields = {
@@ -57,7 +63,7 @@ export default class UserController extends BaseController {
         "Mật khẩu không được trùng với số diện thoại!"
       );
     }
-    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    let exist = await this.Model.query().findOne({phone: data.phonenumber});
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
@@ -109,7 +115,7 @@ export default class UserController extends BaseController {
         id: user.id,
         phonenumber: user.phone,
         username: user.username,
-        avatar:user.avatar
+        avatar: user.avatar
       },
       {
         key: authConfig["SECRET_KEY"],
@@ -139,12 +145,12 @@ export default class UserController extends BaseController {
     let auth = this.request.auth;
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({ username: data.username });
+      .findOne({username: data.username});
     if (existUsername) {
       throw new ApiException(9995, "username is existed");
     }
 
-    const { files } = this.request;
+    const {files} = this.request;
     await this.Model.query().patchAndFetchById(auth.id, data);
     let avatarName = "";
     if (files) {
@@ -191,7 +197,7 @@ export default class UserController extends BaseController {
     if(exist.is_verify === 1){
       throw new ApiException(1004, "User was validated!");
     }
-    await this.Model.query().patchAndFetchById(exist.id, { is_verify: 1 });
+    await this.Model.query().patchAndFetchById(exist.id, {is_verify: 1});
     let token = Auth.generateJWT(
       {
         id: exist.id,
@@ -203,8 +209,8 @@ export default class UserController extends BaseController {
       }
     );
     return {
-      token,
       id: exist.id,
+      token,
       active: exist.activeStatus
     };
   }
@@ -225,9 +231,12 @@ export default class UserController extends BaseController {
         "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
       );
     }
-    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
+    let exist = await this.Model.query().findOne({phone: data.phonenumber});
     if (!exist) {
       throw new ApiException(1004, "Số điện thoại chưa được đăng ký!");
+    }
+    if(exist.is_verify === 1) {
+      throw new ApiException(1004, "Số điện thoại đã được đăng ký!");
     }
     // call 120s liên tục thì không chấp nhận
     let validTime = moment().subtract(120, "seconds");
@@ -275,7 +284,7 @@ export default class UserController extends BaseController {
     if (!user) {
       throw new ApiException(9995, "User is not validated");
     }
-    if(user.phone === data.new_password) {
+    if (user.phone === data.new_password) {
       throw new ApiException(1004, "Mật khẩu k được trùng sdt!");
     }
     let isValidOldPassword = await Model.compare(data.password, user.password);
@@ -326,14 +335,14 @@ export default class UserController extends BaseController {
     }
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({ username: data.username });
+      .findOne({username: data.username});
     if (existUsername) {
       throw new ApiException(9995, "Username is existed");
     }
 
-    const { files } = this.request;
+    const {files} = this.request;
     const insertFiles = this.writeUserInfoFile(files);
-    let updateInfo = { ...data, ...insertFiles };
+    let updateInfo = {...data, ...insertFiles};
     delete updateInfo["token"];
     updateInfo.updatedAt = new Date();
     let result = await user.updateInfo(updateInfo);
@@ -363,20 +372,28 @@ export default class UserController extends BaseController {
       user_id: "string",
     };
     const data = this.validate(inputs, allowFields);
-    try {
-      const decodedToken = await Auth.decodeJWT(data.token, {
-        key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"],
-      });
-      const id = !data.user_id ? decodedToken.id : data.user_id;
-      const user = await this.Model.getInfo(id);
-      if (!user) {
-        throw new ApiException(9995, "User is not validated");
-      }
-      this.response.success(user);
-    } catch (e) {
-      throw new ApiException(1002, "Parameter is not enough");
+    const auth = this.request.auth;
+    const id = !data.user_id ? auth.id : data.user_id;
+    const user = await this.Model.getInfo(id);
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
     }
+    const numberFriends = (await this.FriendshipModel.getUserFriends(id)).length
+    this.response.success({
+      id: user.id,
+      username: user.name,
+      created: new Date(user.createdAt).getTime(),
+      description: user.description,
+      avatar: user.avatar,
+      cover_image: user.cover_image,
+      link: user.link,
+      address: user.address,
+      city: user.city,
+      country: user.country,
+      listing: numberFriends, // so luong ban be ,
+      is_friend: id == auth.id ? "1" : ((await this.FriendshipModel.isFriend(data.user_id, auth.id)) ? "1" : "0"),
+      online: "1"
+    });
   }
 
   // For development

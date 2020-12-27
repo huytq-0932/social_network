@@ -9,6 +9,7 @@ import ApiException from "@app/Exceptions/ApiException";
 import LikeModel from "@root/server/app/Models/LikeModel";
 import _ from "lodash";
 import { raw } from "objection";
+import moment from "moment";
 
 interface SearchInput {
   userId: number;
@@ -45,7 +46,7 @@ export default class LikeController extends BaseController {
       data.index < 0 ||
       data.count < 0
     ) {
-      throw new ApiException(1003, "Parameter type is invalid.");
+      throw new ApiException(1004);
     }
     let posts = await this.retrievePost(data.keyword, data.index, data.count, user.id);
     const postIds = posts.map((post) => post.id);
@@ -55,6 +56,7 @@ export default class LikeController extends BaseController {
     ]);
     await this.saveSearch(data.keyword, user.id);
     return posts.map((post) => {
+      post.is_liked = post.is_liked ? "1" : "0";
       return {
         ...post,
         image: postsImages.filter((image) => image.post_id === post.id),
@@ -137,14 +139,17 @@ export default class LikeController extends BaseController {
       delete search.updated_at;
       delete search.created_at;
       delete search.user_id;
-      search.created = created_at;
+      search.created = moment(created_at).valueOf();
       search.id = search.id + "";
       return search;
     });
   }
 
   async saveSearch(keyword: string, userId: number) {
-    let searches = await this.SearchModel.query().select().where("keyword", keyword);
+    let searches = await this.SearchModel.query()
+      .select()
+      .where("keyword", keyword)
+      .andWhere("user_id", userId);
     if (!searches.length) {
       let search = await this.SearchModel.query().insert({ keyword: keyword, user_id: userId });
       return search;

@@ -63,15 +63,21 @@ export default class PostController extends BaseController {
       this.getPostVideos(postIds),
       this.getPostComments(postIds)
     ]);
-    let postsInfo = posts.map((post) => {
+    let postsInfo = posts.map((post: any) => {
       let postLikes = postsLikes.filter((like) => like.post_id === post.id);
+      post.created = moment(post.createdAt).valueOf();
+      post.can_comment = post.can_comment ? "1" : "0";
+      delete post.user_id;
+      delete post.createdAt;
+      delete post.updatedAt;
       return {
         ...post,
         author: _.find(postsAuthors, { id: post.user_id }),
         like: postLikes.length,
-        is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1,
-        is_blocked: postsBlocked.filter((block) => block.post_id === post.id).length > 0,
-        can_edit: post.user_id === user.id,
+        is_liked: postLikes.findIndex((like) => like.user_id === user.id) > -1 ? "1" : "0",
+        is_blocked:
+          postsBlocked.filter((block) => block.post_id === post.id).length > 0 ? "1" : "0",
+        can_edit: post.user_id === user.id ? "1" : "0",
         image: postsImages.filter((image) => image.post_id === post.id),
         video: postsVideos.filter((video) => video.post_id === post.id),
         comment: comments.length
@@ -284,7 +290,7 @@ export default class PostController extends BaseController {
         this.PostImageModel.query().whereIn("id", data.image_del).delete(),
       this.writeAndInsertFile(this.request.files, data.id, data.image_sort)
     ]);
-    return "Edit post successfully";
+    return null;
   }
 
   async deletePostById() {
@@ -304,14 +310,11 @@ export default class PostController extends BaseController {
     if (!user) {
       throw new ApiException(9995, "User is not validated");
     }
-
     let postInfo = await this.PostModel.query().findById(data.id);
     if (!postInfo) throw new ApiException(9992, "Post is not existed");
     if (postInfo.user_id !== user.id) throw new ApiException(1009, "Not access.");
-
     await this.PostModel.query().delete().where("id", "=", postInfo.id);
-
-    return "Delete post successfully";
+    return null;
   }
 
   async createPost() {
