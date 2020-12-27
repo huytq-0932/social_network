@@ -5,6 +5,7 @@ import Auth from "@libs/Auth";
 import authConfig from "@config/auth";
 import moment from "moment";
 import _ from "lodash";
+import FriendshipModel from "@app/Models/FriendshipModel";
 
 var stringSimilarity = require("string-similarity");
 
@@ -12,6 +13,7 @@ const random = require("random");
 
 export default class UserController extends BaseController {
   Model = Model;
+  FriendshipModel = FriendshipModel;
 
   async getByPhone() {
     const inputs = this.request.all();
@@ -364,20 +366,28 @@ export default class UserController extends BaseController {
       user_id: "string",
     };
     const data = this.validate(inputs, allowFields);
-    try {
-      const decodedToken = await Auth.decodeJWT(data.token, {
-        key: authConfig["SECRET_KEY"],
-        expiresIn: authConfig["JWT_EXPIRE"],
-      });
-      const id = !data.user_id ? decodedToken.id : data.user_id;
-      const user = await this.Model.getInfo(id);
-      if (!user) {
-        throw new ApiException(9995, "User is not validated");
-      }
-      this.response.success(user);
-    } catch (e) {
-      throw new ApiException(1002, "Parameter is not enough");
+    const auth = this.request.auth;
+    const id = !data.user_id ? auth.id : data.user_id;
+    const user = await this.Model.getInfo(id);
+    if (!user) {
+      throw new ApiException(9995, "User is not validated");
     }
+    const numberFriends = (await this.FriendshipModel.getUserFriends(id)).length
+    this.response.success({
+      id: user.id,
+      username: user.name,
+      created: new Date(user.createdAt).getTime(),
+      description: user.description,
+      avatar: user.avatar,
+      cover_image: user.cover_image,
+      link: user.link,
+      address: user.address,
+      city: user.city,
+      country: user.country,
+      listing: numberFriends, // so luong ban be ,
+      is_friend: id == auth.id ? "1" : ((await this.FriendshipModel.isFriend(data.user_id, auth.id)) ? "1" : "0"),
+      online: "1"
+    });
   }
 
   // For development
