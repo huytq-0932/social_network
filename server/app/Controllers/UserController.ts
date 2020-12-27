@@ -186,7 +186,10 @@ export default class UserController extends BaseController {
       code_verify: data.code_verify,
     });
     if (!exist) {
-      throw new ApiException(9995, "User is not validated");
+      throw new ApiException(1004, "User is not validated");
+    }
+    if(exist.is_verify === 1){
+      throw new ApiException(1004, "User was validated!");
     }
     await this.Model.query().patchAndFetchById(exist.id, { is_verify: 1 });
     let token = Auth.generateJWT(
@@ -202,6 +205,7 @@ export default class UserController extends BaseController {
     return {
       token,
       id: exist.id,
+      active: exist.activeStatus
     };
   }
 

@@ -305,9 +305,7 @@ export default class Controller extends BaseController {
     }
 
     if (!conversation) {
-      return {
-        data: [],
-      };
+      return [];
     }
     let unreadMessages = await this.ChatModel.query()
       .where("group_id", conversation.id)
@@ -329,8 +327,6 @@ export default class Controller extends BaseController {
     if (error) {
       throw new ApiException(1001, "Can not connect to DB!");
     }
-    return {
-      data: result,
-    };
+    return result;
   }
 }
