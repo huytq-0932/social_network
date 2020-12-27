@@ -8,6 +8,7 @@ import PostBlockedUsers from "@root/server/app/Models/PostBlockedUsers";
 import PostImages from "@root/server/app/Models/PostImages";
 import PostVideos from "@root/server/app/Models/PostVideos";
 import ApiException from "@app/Exceptions/ApiException";
+import moment from "moment";
 
 export default class PostController extends BaseController {
   UserModel = UserModel;
@@ -424,8 +425,8 @@ export default class PostController extends BaseController {
       image: postImages,
       comment: postComments.length + "",
       video: postVideos,
-      created: postInfo.createdAt,
-      modified: postInfo.updatedAt
+      created: moment(postInfo.createdAt).valueOf(),
+      modified: moment(postInfo.updatedAt).valueOf()
     };
     delete response.user_id;
     delete response.updatedAt;
