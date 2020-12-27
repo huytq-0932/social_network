@@ -18,7 +18,7 @@ export default class UserController extends BaseController {
   async getByPhone() {
     const inputs = this.request.all();
     const allowFields = {
-      phonenumber: "string!"
+      phonenumber: "string!",
     };
     const data = this.validate(inputs, allowFields);
     var phonePattern = new RegExp(/^0[0-9]{9}$/);
@@ -28,12 +28,10 @@ export default class UserController extends BaseController {
         "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
       );
     }
-    ;
-    let exist = await this.Model.query().findOne({phone: data.phonenumber});
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
       throw new ApiException(9996, "User not Exist");
     }
-    ;
     delete exist.password;
     return exist;
   }
@@ -63,7 +61,7 @@ export default class UserController extends BaseController {
         "Mật khẩu không được trùng với số diện thoại!"
       );
     }
-    let exist = await this.Model.query().findOne({phone: data.phonenumber});
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (exist) {
       throw new ApiException(9996, "User Exist");
     }
@@ -115,7 +113,7 @@ export default class UserController extends BaseController {
         id: user.id,
         phonenumber: user.phone,
         username: user.username,
-        avatar: user.avatar
+        avatar: user.avatar,
       },
       {
         key: authConfig["SECRET_KEY"],
@@ -135,7 +133,7 @@ export default class UserController extends BaseController {
 
   async changeInfoAfterSignup() {
     let inputs = this.request.all();
-
+    let urlRegex = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$/gm;
     const allowFields = {
       username: "string!",
     };
@@ -143,14 +141,39 @@ export default class UserController extends BaseController {
       removeNotAllow: true,
     });
     let auth = this.request.auth;
+     // trường hợp block
+     if(data.username.length > 50) {
+      await this.Model.query().patchAndFetchById(auth.id, {activeStatus: 2});
+      return {
+        is_blocked: "1",
+      }
+    }
+    if (/[`~,.<>;@%$#*!':"/[\]|{}()=_+-]/.test(data.username)) {
+      throw new ApiException(1004, "Không được chứa ký hiệu đặc biệt");
+    }
+    if (urlRegex.test(data.username)) {
+      throw new ApiException(1004, "Không được sử dụng tên miền");
+    }
+    if (data.username.length < 6 || data.username.length > 16) {
+      throw new ApiException(1004, "Quá ngắn hoặc quá dài");
+    }
+   
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({username: data.username});
+      .findOne({ username: data.username });
     if (existUsername) {
       throw new ApiException(9995, "username is existed");
     }
 
-    const {files} = this.request;
+    const { files } = this.request;
+    const user = await this.Model.query().findById(auth.id);
+
+    if (!user) {
+      throw new ApiException(9998, "username is existed");
+    }
+    if (user.phone === data.username) {
+      throw new ApiException(1004, "Không được trùng với sdt");
+    }
     await this.Model.query().patchAndFetchById(auth.id, data);
     let avatarName = "";
     if (files) {
@@ -165,7 +188,9 @@ export default class UserController extends BaseController {
       username: data.username,
       avatar: `/static/data/images/${avatarName}`,
       created: moment().valueOf(),
-      phonenumber: auth.phonenumber,
+      phonenumber: user.phone,
+      online: "1",
+      is_blocked: "0",
     };
   }
 
@@ -194,10 +219,10 @@ export default class UserController extends BaseController {
     if (!exist) {
       throw new ApiException(1004, "User is not validated");
     }
-    if(exist.is_verify === 1){
+    if (exist.is_verify === 1) {
       throw new ApiException(1004, "User was validated!");
     }
-    await this.Model.query().patchAndFetchById(exist.id, {is_verify: 1});
+    await this.Model.query().patchAndFetchById(exist.id, { is_verify: 1 });
     let token = Auth.generateJWT(
       {
         id: exist.id,
@@ -211,7 +236,7 @@ export default class UserController extends BaseController {
     return {
       id: exist.id,
       token,
-      active: exist.activeStatus
+      active: exist.activeStatus,
     };
   }
 
@@ -231,17 +256,17 @@ export default class UserController extends BaseController {
         "Số điện thoại phải 10 chữ số, bắt đầu từ số 0!"
       );
     }
-    let exist = await this.Model.query().findOne({phone: data.phonenumber});
+    let exist = await this.Model.query().findOne({ phone: data.phonenumber });
     if (!exist) {
       throw new ApiException(1004, "Số điện thoại chưa được đăng ký!");
     }
-    if(exist.is_verify === 1) {
+    if (exist.is_verify === 1) {
       throw new ApiException(1004, "Số điện thoại đã được đăng ký!");
     }
     // call 120s liên tục thì không chấp nhận
     let validTime = moment().subtract(120, "seconds");
     if (exist.last_verify_at) {
-      if (validTime > moment(exist.last_verify_at)) {
+      if (validTime < moment(exist.last_verify_at)) {
         throw new ApiException(
           1010,
           "Hành động này đã được thực hiện trước đây!"
@@ -260,6 +285,7 @@ export default class UserController extends BaseController {
       if (!existCode) {
         await this.Model.query().patchAndFetchById(exist.id, {
           code_verify: randomCode,
+          last_verify_at: new Date(),
         });
         break;
       }
@@ -335,14 +361,14 @@ export default class UserController extends BaseController {
     }
     let existUsername = await this.Model.query()
       .whereNot("id", auth.id)
-      .findOne({username: data.username});
+      .findOne({ username: data.username });
     if (existUsername) {
       throw new ApiException(9995, "Username is existed");
     }
 
-    const {files} = this.request;
+    const { files } = this.request;
     const insertFiles = this.writeUserInfoFile(files);
-    let updateInfo = {...data, ...insertFiles};
+    let updateInfo = { ...data, ...insertFiles };
     delete updateInfo["token"];
     updateInfo.updatedAt = new Date();
     let result = await user.updateInfo(updateInfo);
@@ -378,7 +404,8 @@ export default class UserController extends BaseController {
     if (!user) {
       throw new ApiException(9995, "User is not validated");
     }
-    const numberFriends = (await this.FriendshipModel.getUserFriends(id)).length
+    const numberFriends = (await this.FriendshipModel.getUserFriends(id))
+      .length;
     this.response.success({
       id: user.id,
       username: user.name,
@@ -391,8 +418,13 @@ export default class UserController extends BaseController {
       city: user.city,
       country: user.country,
       listing: numberFriends, // so luong ban be ,
-      is_friend: id == auth.id ? "1" : ((await this.FriendshipModel.isFriend(data.user_id, auth.id)) ? "1" : "0"),
-      online: "1"
+      is_friend:
+        id == auth.id
+          ? "1"
+          : (await this.FriendshipModel.isFriend(data.user_id, auth.id))
+          ? "1"
+          : "0",
+      online: "1",
     });
   }
 

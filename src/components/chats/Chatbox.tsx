@@ -101,7 +101,6 @@ const Chatbox = () => {
         return;
       }
       setMessages(_messages.conversations || []);
-      console.log("_messages.conversations ", _messages.conversations)
       setDisabled(_messages.is_blocked);
       initSocket();
     }
