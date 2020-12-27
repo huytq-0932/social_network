@@ -240,7 +240,7 @@ export default class PostController extends BaseController {
     const allowFields = {
       token: "string!",
       id: "number!",
-      described: "string!",
+      described: "string",
       status: "string",
       image_del: ["number"],
       image_sort: ["number"],
@@ -260,13 +260,16 @@ export default class PostController extends BaseController {
     if (postInfo.user_id !== user.id) throw new ApiException(1009, "Not access");
 
     // Check permission delete image in post
-    let imageDelRecord = await this.PostImageModel.query().select().whereIn("id", data.image_del);
-    if (_.findIndex(imageDelRecord, (record) => record.post_id !== data.id) > -1) {
-      throw new ApiException(1009, "Not access");
+    if (data.image_del && data.image_del.length) {
+      let imageDelRecord = await this.PostImageModel.query().select().whereIn("id", data.image_del);
+      if (_.findIndex(imageDelRecord, (record) => record.post_id !== data.id) > -1) {
+        throw new ApiException(1009, "Not access");
+      }
     }
 
     let updatePost = JSON.parse(JSON.stringify(data));
-    updatePost.state = updatePost.status;
+    if (updatePost.status) updatePost.state = updatePost.status;
+    console.log(updatePost);
     updatePost.updatedAt = new Date();
     delete updatePost["token"];
     delete updatePost["image_del"];
@@ -275,7 +278,9 @@ export default class PostController extends BaseController {
     delete updatePost["status"];
     await Promise.all([
       this.PostModel.query().update(updatePost).where({ id: data.id }),
-      this.PostImageModel.query().whereIn("id", data.image_del).delete(),
+      data.image_del &&
+        data.image_del.length &&
+        this.PostImageModel.query().whereIn("id", data.image_del).delete(),
       this.writeAndInsertFile(this.request.files, data.id, data.image_sort)
     ]);
     return "Edit post successfully";
@@ -418,11 +423,13 @@ export default class PostController extends BaseController {
       can_edit: postInfo.user_id === user.id ? "1" : "0",
       image: postImages,
       comment: postComments.length + "",
-      video: postVideos
+      video: postVideos,
+      created: postInfo.createdAt,
+      modified: postInfo.updatedAt
     };
     delete response.user_id;
-    response.id = response.id + "";
-    response.state = response.state + "";
+    delete response.updatedAt;
+    delete response.createdAt;
     this.response.success(response);
   }
 

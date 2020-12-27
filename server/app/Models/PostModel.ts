@@ -11,6 +11,8 @@ class PostModel extends BaseModel {
   state: number;
   can_comment: boolean;
   image!: Array<Object>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default PostModel;
