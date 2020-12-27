@@ -45,7 +45,7 @@ export default class LikeController extends BaseController {
       data.index < 0 ||
       data.count < 0
     ) {
-      throw new ApiException(1003, "Parameter type is invalid.");
+      throw new ApiException(1004);
     }
     let posts = await this.retrievePost(data.keyword, data.index, data.count, user.id);
     const postIds = posts.map((post) => post.id);
