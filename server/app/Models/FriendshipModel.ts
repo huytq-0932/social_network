@@ -29,14 +29,13 @@ class FriendshipModel extends BaseModel {
         user_one_id: secondUserId,
         user_two_id: firstUserId
       });
-    if (friendships.length != 1) return false;
     return friendships[0];
   }
 
   static async removeFriendship(firstUserId, secondUserId) {
     const friendship = await this.getFriendship(firstUserId, secondUserId);
     if (friendship) {
-      this.query().del();
+      await this.query().findOne({id: friendship.id}).del();
       return true;
     }
     return false;
@@ -108,14 +107,14 @@ class FriendshipModel extends BaseModel {
 
   static async getReceivedRequests(userId) {
     return this.query()
-      .whereNot({ action_user_id: userId })
-      .andWhere({ user_two_id: userId, status: FriendshipModel.Constant.STATUS_REQUEST });
+      .whereNot({action_user_id: userId})
+      .andWhere({user_two_id: userId, status: FriendshipModel.Constant.STATUS_REQUEST});
   }
 
   static async getUserFriends(userId) {
     return this.query()
-      .where({ user_one_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND })
-      .orWhere({ user_two_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND });
+      .where({user_one_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND})
+      .orWhere({user_two_id: userId, status: FriendshipModel.Constant.STATUS_FRIEND});
   }
 
   static async getMultipleFriendsCount(firstUserId, secondUserId) {
@@ -137,7 +136,7 @@ class FriendshipModel extends BaseModel {
 
   static async isBlockedTogether(user_one_id, user_two_id) {
     let list = await this.query()
-      .where({ user_one_id, user_two_id, status: FriendshipModel.Constant.STATUS_BLOCK })
+      .where({user_one_id, user_two_id, status: FriendshipModel.Constant.STATUS_BLOCK})
       .orWhere({
         user_one_id: user_two_id,
         user_two_id: user_one_id,

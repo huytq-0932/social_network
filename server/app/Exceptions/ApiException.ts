@@ -18,7 +18,7 @@ const CODE_MESSAGE = {
   "1007": "Upload File Failed!",
   "1008": "Maximum number of images",
   "1009": "Not access",
-  "1010": "action has been done previously by this user"
+  "1010": "Action has been done previously by this user"
 };
 class ApiException extends Exception {
   constructor(code: number | string = "", message = "", data?) {

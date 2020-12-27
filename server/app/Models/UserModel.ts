@@ -22,8 +22,8 @@ class UserModel extends BaseModel {
   last_verify_at: Date;
   activeStatus: number;
 
-  static async checkLogin({ phonenumber, password }) {
-    const user = await this.query().findOne({ phone: phonenumber });
+  static async checkLogin({phonenumber, password}) {
+    const user = await this.query().findOne({phone: phonenumber});
     if (!user) return false;
 
     //await this.changePassword(user.id, "123456@")
@@ -52,8 +52,12 @@ class UserModel extends BaseModel {
     return this.$query().patchAndFetchById(this.id, info);
   }
 
+  async isBlocked() {
+    return (await this.$query().findOne({id: this.id})).activeStatus == 0
+  }
+
   static async getInfo(id) {
-    const user = await this.query().findOne({ id: id });
+    const user = await this.query().findOne({id: id});
     if (!user) return false;
     delete user.password;
     return user;

@@ -23,8 +23,10 @@ export default class FriendshipController extends BaseController {
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
     if (data.user_id == auth.id) {
-      throw new ApiException(1010, "Cannot send request to yourself");
+      throw new ApiException(1004);
     }
+    const validatedUser = await this.validateUserToken(data.user_id)
+    const numberFriends = await this.validateNumberFriends(auth.id)
 
     const result = await this.Friendship.sendRequest(auth.id, data.user_id);
     if (!result) throw new ApiException(1010, "Action has been done previously by this user");
@@ -43,23 +45,30 @@ export default class FriendshipController extends BaseController {
     };
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
+    if (data.index < 0 || data.count < 0) {
+      throw new ApiException(1004)
+    }
+
     const friendRequests = await this.Friendship.getReceivedRequests(auth.id);
     const users = await this.UserModel.query();
-    const requests = friendRequests.map((request) => {
+
+    const requests = await Promise.all(friendRequests.map(async (request) => {
       const user = users.filter((user) => user.id == request.action_user_id)[0];
+      const multiple = await this.Friendship.getMultipleFriendsCount(user.id, auth.id)
       return {
-        id: user.id,
+        user_id: user.id,
         username: user.name,
         avatar: user.avatar,
-        created: request.createdAt
+        same_friends: multiple
       };
-    });
+    }));
 
     this.response.success({
       request: requests.slice(data.index, data.index + data.count),
       total: requests.length
     });
   }
+
 
   async setAcceptFriend() {
     const inputs = this.request.all();
@@ -71,33 +80,30 @@ export default class FriendshipController extends BaseController {
     const data = this.validate(inputs, allowFields);
     const auth = this.request.auth;
     if (data.user_id == auth.id) {
-      throw new ApiException(1010, "Cannot accept request of yourself");
+      throw new ApiException(1004);
     }
+    const validatedUser = await this.validateUserToken(data.user_id)
+    const validateNumberFriends = await this.validateNumberFriends(data.user_id)
 
     const friendship = await this.Friendship.getFriendship(data.user_id, auth.id);
     if (!friendship || friendship.status != FriendshipModel.Constant.STATUS_REQUEST) {
-      throw new ApiException(1010, "This request is not exist");
+      throw new ApiException(9995);
     }
 
     if (data.is_accept == FriendshipController.Constant.REQUEST_ACCEPT) {
       const acceptResult = await this.Friendship.acceptFriendRequest(data.user_id, auth.id);
       if (!acceptResult) {
-        if (!acceptResult) throw new ApiException(1010, "Can't accept this request");
+        if (!acceptResult) throw new ApiException(1004);
       }
-
-      return {
-        message: "Accept request successfully"
-      };
+      return {}
     }
+    if (data.is_accept == FriendshipController.Constant.REQUEST_REJECT) {
 
-    const result = await this.Friendship.removeFriendship(data.user_id, auth.id);
-    if (!result) {
-      if (!result) throw new ApiException(1010, "Can't reject this request");
+      const result = await this.Friendship.removeFriendship(data.user_id, auth.id);
+      if (!result) throw new ApiException(1004);
+      return {}
     }
-
-    return {
-      message: "Reject request successfully"
-    };
+    throw new ApiException(1004)
   }
 
   async setBlock() {
@@ -112,6 +118,7 @@ export default class FriendshipController extends BaseController {
     if (data.user_id == auth.id) {
       throw new ApiException(1010, "Cannot block yourself");
     }
+    const validatedUser = await this.validateUserToken(data.user_id)
 
     if (data.type == FriendshipController.Constant.TYPE_BLOCK) {
       const block = await this.Friendship.block(auth.id, data.user_id);
@@ -124,9 +131,7 @@ export default class FriendshipController extends BaseController {
     if (!unblock) {
       throw new ApiException(1010, "Cannot unblock this user");
     }
-    return {
-      message: unblock ? "Unblock user successfully" : "Cannot unblock this user"
-    };
+    this.response.success(null);
   }
 
   async getListBlocks() {
@@ -222,10 +227,18 @@ export default class FriendshipController extends BaseController {
   async validateUserToken(userId) {
     let user = await this.UserModel.query().findById(userId);
     if (!user) {
-      throw new ApiException(9995, "User is not validated");
+      throw new ApiException(9995);
+    }
+    if (await user.isBlocked()) {
+      throw new ApiException(9995)
     }
     return user;
   }
 
-
+  async validateNumberFriends(userId) {
+    const numberFriends = (await this.Friendship.getUserFriends(userId)).length
+    if (numberFriends >= 5000) {
+      throw new ApiException(9994)
+    }
+  }
 }
