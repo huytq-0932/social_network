@@ -55,6 +55,7 @@ export default class LikeController extends BaseController {
     ]);
     await this.saveSearch(data.keyword, user.id);
     return posts.map((post) => {
+      post.is_liked = post.is_liked ? "1" : "0";
       return {
         ...post,
         image: postsImages.filter((image) => image.post_id === post.id),
