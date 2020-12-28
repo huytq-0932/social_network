@@ -4,6 +4,7 @@ if (!process.env.IS_TS_NODE) {
 }
 import Server from '@core/Server'
 import Socket from '@core/Socket'
+// index.js
 
 (async () => {
   try {

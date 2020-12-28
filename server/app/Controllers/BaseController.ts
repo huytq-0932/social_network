@@ -5,6 +5,7 @@ import ApiException from "@app/Exceptions/ApiException";
 import fs from "fs";
 import path from "path";
 import moment from "moment";
+const inDevelopment = process.env.NODE_ENV === "development"
 
 class BaseController {
   isProductionEnv = process.env.NODE_ENV === "production";
@@ -21,8 +22,12 @@ class BaseController {
     let imageName = file.name;
     let time = moment().valueOf();
     imageName = `${time}-${Math.random().toString(36).substr(2, 9)}.jpg`;
+    var appDir = path.dirname(require.main.filename);
+    let folderPath = inDevelopment? "../../../public/static/data/images/"
+    : "../../../../public/static/data/images/";
+
     fs.writeFileSync(
-      path.join(__dirname, "../../../public/static/data/images/", imageName),
+      path.join(__dirname, folderPath, imageName),
       file.data
     );
     return imageName;
@@ -32,6 +37,7 @@ class BaseController {
     let imageName = file.name;
     let time = moment().valueOf();
     imageName = `${time}-` + Math.random().toString(36).substr(2, 9) + ".mp4";
+    console.log("__dirname ", __dirname)
     fs.writeFileSync(
       path.join(__dirname, "../../../public/static/data/videos/", imageName),
       file.data
