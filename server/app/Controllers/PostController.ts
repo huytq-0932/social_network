@@ -156,8 +156,13 @@ export default class PostController extends BaseController {
       this.getPostVideos(postIds),
       this.getPostComments(postIds)
     ]);
-    let postsInfo = posts.map((post) => {
+    let postsInfo = posts.map((post: any) => {
       let postLikes = postsLikes.filter((like) => like.post_id === post.id);
+      post.can_comment = post.can_comment ? "1" : "0";
+      post.created = moment(post.createdAt).valueOf();
+      delete post.user_id;
+      delete post.createdAt;
+      delete post.updatedAt;
       return {
         ...post,
         author: _.find(postsAuthors, { id: post.user_id }),
@@ -431,6 +436,7 @@ export default class PostController extends BaseController {
       created: moment(postInfo.createdAt).valueOf(),
       modified: moment(postInfo.updatedAt).valueOf()
     };
+    response.can_comment = response.can_comment ? "1" : "0";
     delete response.user_id;
     delete response.updatedAt;
     delete response.createdAt;
