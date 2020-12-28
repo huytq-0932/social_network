@@ -37,8 +37,8 @@ class BaseController {
     imageName = `${time}-` + Math.random().toString(36).substr(2, 9) + ".mp4";
     console.log("__dirname ", __dirname);
     let folderPath = inDevelopment
-      ? "../../../public/static/data/images/"
-      : "../../../../public/static/data/images/";
+      ? "../../../public/static/data/videos/"
+      : "../../../../public/static/data/videos/";
     fs.writeFileSync(path.join(__dirname, folderPath, imageName), file.data);
     return imageName;
   }
