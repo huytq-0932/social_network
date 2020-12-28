@@ -96,7 +96,7 @@ class ExtendMiddleware extends BaseMiddleware {
         }
 
         if (isDate) {
-          o[k] = moment(o[k]).valueOf();
+          o[k] = moment(o[k]).valueOf() + "";
         }
       });
 
