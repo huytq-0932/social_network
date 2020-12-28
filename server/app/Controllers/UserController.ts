@@ -162,14 +162,14 @@ export default class UserController extends BaseController {
       .whereNot("id", auth.id)
       .findOne({ username: data.username });
     if (existUsername) {
-      throw new ApiException(9995, "username is existed");
+      throw new ApiException(1004, "username is existed");
     }
 
     const { files } = this.request;
     const user = await this.Model.query().findById(auth.id);
 
     if (!user) {
-      throw new ApiException(9998, "username is existed");
+      throw new ApiException(1004, "username is existed");
     }
     if (user.phone === data.username) {
       throw new ApiException(1004, "Không được trùng với sdt");
