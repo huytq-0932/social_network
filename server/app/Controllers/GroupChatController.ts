@@ -86,9 +86,12 @@ export default class Controller extends BaseController {
         },
       };
     });
-    let conversationIds = conversations.map(item => item.id)
-    let numNewMessage = await ChatModel.getNumberOfNewMessage(auth.id, conversationIds);
-    this.response.addReturnData({ numNewMessage: numNewMessage});
+    let conversationIds = conversations.map((item) => item.id);
+    let numNewMessage = await ChatModel.getNumberOfNewMessage(
+      auth.id,
+      conversationIds
+    );
+    this.response.addReturnData({ numNewMessage: numNewMessage });
     return conversations;
   }
   async getConversation() {
@@ -108,7 +111,7 @@ export default class Controller extends BaseController {
     let is_blocked = false;
     if (!data.partner_id && !data.conversation_id) {
       throw new ApiException(
-        1004,
+        1002,
         "Vui lòng truyền partner_id hoặc conversation_id!"
       );
     }
@@ -193,28 +196,29 @@ export default class Controller extends BaseController {
     if (!partner) {
       throw new ApiException(1004, "Không tồn tại partner!");
     }
+    let authId = Number(auth.id);
     const is_blocked = await this.FriendshipModel.isBlockedTogether(
-      auth.id,
+      authId,
       partner.id
     );
     if (is_blocked) {
       throw new ApiException(1009, "2 người đã chặn nhau!");
     }
     let existConversation = await this.Model.query()
-      .where("user_ids", "@>", auth.id)
+      .where("user_ids", "@>", authId)
       .andWhere("user_ids", "@>", data.partner_id)
       .first();
     if (!existConversation) {
       existConversation = await this.Model.query().insert({
-        user_ids: JSON.stringify(_.sortBy([auth.id, partner.id])),
+        user_ids: JSON.stringify(_.sortBy([authId, partner.id])),
       });
     }
     return await this.ChatModel.query().insert({
-      send_id: auth.id,
+      send_id: authId,
       group_id: existConversation.id,
       receive_id: partner.id,
       content: data.message,
-      readed_user_ids: JSON.stringify([auth.id]),
+      readed_user_ids: JSON.stringify([authId]),
     });
   }
 
@@ -222,17 +226,43 @@ export default class Controller extends BaseController {
     const inputs = this.request.all();
     const allowFields = {
       message_id: "number!",
-      // partner_id: "number",
-      // conversation_id: "number",
+      partner_id: "number",
+      conversation_id: "number",
     };
     const data = this.validate(inputs, allowFields);
+    if (!data.partner_id && !data.conversation_id) {
+      throw new ApiException(
+        1002,
+        "Vui lòng truyền partner_id hoặc conversation_id!"
+      );
+    }
     const auth = this.request.auth;
     let exist = await this.ChatModel.query().findById(data.message_id);
+    console.log("exist ", exist)
     if (!exist) {
-      throw new ApiException(9995, "Message is not validated");
+      throw new ApiException(1004, "Message is not validated");
     }
+    
     if (exist.send_id !== auth.id) {
       throw new ApiException(1009, "Can not access!");
+    }
+    if (data.conversation_id) {
+      if (data.conversation_id !== exist.group_id) {
+        throw new ApiException(1004, "conversation_id is not validated");
+      }
+    }
+    if (data.partner_id) {
+      let conversation = await this.Model.query()
+        .where("user_ids", "@>", auth.id)
+        .andWhere("user_ids", "@>", data.partner_id)
+        .first();
+      console.log("conversation ", conversation);
+      if (!conversation) {
+        throw new ApiException(1004, "partner_id is not validated");
+      }
+      if (conversation.id !== exist.group_id) {
+        throw new ApiException(1004, "partner_id is not validated");
+      }
     }
 
     let [err, rs] = await to(
@@ -240,7 +270,7 @@ export default class Controller extends BaseController {
     );
     if (err) throw new ApiException(1001, "Connect DB lỗi!");
 
-    return { message: `Delete successfully: ${rs} record` };
+    return [];
   }
 
   async deleteConversation() {
@@ -250,10 +280,11 @@ export default class Controller extends BaseController {
       conversation_id: "number",
     };
     const data = this.validate(inputs, allowFields);
+
     const auth = this.request.auth;
     if (!data.partner_id && !data.conversation_id) {
       throw new ApiException(
-        1004,
+        1002,
         "Vui lòng truyền partner_id hoặc conversation_id!"
       );
     }
@@ -267,17 +298,22 @@ export default class Controller extends BaseController {
         .first();
     }
     if (!conversation) {
-      throw new ApiException(9995, "Không tồn tại conversation!");
+      throw new ApiException(1004, "Không tồn tại conversation!");
     }
 
     if (!conversation.user_ids.includes(auth.id)) {
       throw new ApiException(1009, "Can not access!");
     }
+    let deletedChats = await this.ChatModel.query().where({
+      group_id: conversation.id,
+    });
+    await this.ChatModel.query().where({ group_id: conversation.id }).delete();
 
     let [err, rs] = await to(this.Model.query().deleteById(conversation.id));
+
     if (err) throw new ApiException(1001, "Connect DB lỗi!");
 
-    return { message: `Delete successfully: ${rs} record` };
+    return deletedChats;
   }
 
   async setReadMessage() {
@@ -290,7 +326,7 @@ export default class Controller extends BaseController {
     const auth = this.request.auth;
     if (!data.partner_id && !data.conversation_id) {
       throw new ApiException(
-        1004,
+        1002,
         "Vui lòng truyền partner_id hoặc conversation_id!"
       );
     }
@@ -303,13 +339,12 @@ export default class Controller extends BaseController {
     } else {
       conversation = await this.Model.query().findById(data.conversation_id);
     }
-
     if (!conversation) {
       return [];
     }
     let unreadMessages = await this.ChatModel.query()
       .where("group_id", conversation.id)
-      .whereNot("user_ids", "@>", auth.id);
+      .whereNot("readed_user_ids", "@>", auth.id);
     let readed_users = unreadMessages.map((message) => {
       let readed_user_ids = message.readed_user_ids || [];
       readed_user_ids.push(auth.id);

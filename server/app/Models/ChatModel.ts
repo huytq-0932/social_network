@@ -18,7 +18,6 @@ class LikeModel extends BaseModel {
         .whereNot("readed_user_ids", "@>", userId)
         .distinct("group_id")
     );
-    console.log("unreadMessages ", unreadMessages)
     return unreadMessages.length;
   }
 }
