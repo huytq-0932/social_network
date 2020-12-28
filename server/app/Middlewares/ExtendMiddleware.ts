@@ -1,7 +1,7 @@
 import BaseMiddleware from "./BaseMiddleware";
 import Logger from "@core/Logger";
 const logger = Logger("api");
-
+import moment from "moment";
 /**
  * Mở rộng chức năng của response
  * success(data): gọi hàm khi có dữ liệu
@@ -87,11 +87,16 @@ class ExtendMiddleware extends BaseMiddleware {
 
     function toString(o) {
       Object.keys(o).forEach((k) => {
-        if (typeof o[k] === "object" && o[k]) {
+        let isDate = o[k] instanceof Date;
+        if (typeof o[k] === "object" && o[k] && !isDate) {
           return toString(o[k]);
         }
-        if(typeof o[k] === "number"){
+        if (typeof o[k] === "number") {
           o[k] = "" + o[k];
+        }
+
+        if (isDate) {
+          o[k] = moment(o[k]).valueOf();
         }
       });
 
