@@ -71,7 +71,7 @@ export default class UserController extends BaseController {
     let result = await this.Model.query().insert({
       phone: data.phonenumber,
       password: password,
-      name: data.name || "new member",
+      name: data.name || "",
     });
     delete result.password;
     return {};
