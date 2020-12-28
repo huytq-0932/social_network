@@ -106,7 +106,7 @@ export default class UserController extends BaseController {
       password: data.password,
     });
     if (!user) {
-      throw new ApiException(9995, "Can not login");
+      throw new ApiException(1004, "Can not login");
     }
     let token = Auth.generateJWT(
       {
